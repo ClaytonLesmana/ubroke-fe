@@ -1,50 +1,173 @@
-# Welcome to your Expo app 👋
+# UBroke - Personal Finance App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern React Native app built with Expo for managing personal finances with a Gen Z-friendly interface.
 
-## Get started
+## Features
 
-1. Install dependencies
+- 📧 **Email Authentication** with Supabase
+  - Sign up with email verification
+  - Password reset functionality
+  - Secure user sessions
+- 🔐 **Google OAuth** integration
+- 📱 **Cross-platform** (iOS, Android, Web)
+- 💰 **Financial tracking** and budgeting
+- 🎯 **Goal setting** and progress tracking
+- 📊 **Spending insights** and analytics
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- Node.js 18+ and npm
+- Expo CLI: `npm install -g expo-cli`
+- A Supabase account and project
 
-   ```bash
-   npx expo start
-   ```
+## Setup
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone and Install
 
 ```bash
-npm run reset-project
+git clone <your-repo-url>
+cd ubroke/ubroke-fe
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Supabase Configuration
 
-## Learn more
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Copy `.env.example` to `.env`
+3. Fill in your Supabase credentials:
 
-To learn more about developing your project with Expo, look at the following resources:
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 3. Database Setup
 
-## Join the community
+Run this SQL in your Supabase SQL editor to create the user profiles table:
 
-Join our community of developers creating universal apps.
+```sql
+-- Create user_profiles table
+CREATE TABLE user_profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  avatar_url TEXT,
+  total_points INTEGER DEFAULT 0,
+  current_level INTEGER DEFAULT 1,
+  daily_streak INTEGER DEFAULT 0,
+  currency TEXT DEFAULT 'USD',
+  age INTEGER,
+  account_count INTEGER,
+  assets DECIMAL,
+  liabilities DECIMAL,
+  salary DECIMAL,
+  salary_frequency TEXT CHECK (salary_frequency IN ('weekly', 'biweekly', 'monthly')),
+  next_pay_date DATE,
+  onboarding_completed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+-- Enable Row Level Security
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can view own profile" ON user_profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON user_profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+```
+
+### 4. Authentication Settings
+
+In your Supabase dashboard, go to **Authentication > Settings**:
+
+1. **Site URL**:
+
+   - Development: `http://localhost:3000`
+   - Production: Your domain
+
+2. **Redirect URLs**:
+
+   - `http://localhost:3000/auth/callback`
+   - `ubroke://auth/callback`
+   - `http://localhost:19006/auth/callback` (for Expo web)
+
+3. **Email Templates**: Customize under Authentication > Email Templates
+
+### 5. Run the App
+
+```bash
+# Start the development server
+npm start
+
+# Run on specific platforms
+npm run ios
+npm run android
+npm run web
+```
+
+## Email Authentication Features
+
+### ✅ What's Working
+
+- **Sign Up**: Users can create accounts with email/password
+- **Email Verification**: Automatic verification emails sent
+- **Sign In**: Secure password-based authentication
+- **Password Reset**: Users can reset forgotten passwords
+- **Profile Creation**: Automatic user profile setup after signup
+- **Verification Resend**: Users can resend verification emails
+
+### 🔧 Setup Requirements
+
+1. **Environment Variables**: Configure your `.env` file
+2. **Database Schema**: Run the SQL above to create necessary tables
+3. **Redirect URLs**: Configure in Supabase dashboard
+4. **Email Templates**: Customize verification and reset emails
+
+### 📱 User Flow
+
+1. **Sign Up**: User enters email, password, and name
+2. **Verification**: Email sent with verification link
+3. **Verification Complete**: User clicks link, gets redirected to app
+4. **Onboarding**: Complete profile setup if needed
+5. **Dashboard**: Access main app features
+
+### 🛠️ Development Notes
+
+- Email verification is required by default
+- Password reset links expire in 24 hours
+- User profiles are automatically created after signup
+- All auth state changes are handled reactively
+
+## Project Structure
+
+```
+ubroke-fe/
+├── app/
+│   ├── (tabs)/              # Main app screens
+│   ├── onboarding/          # Onboarding flow
+│   ├── auth/                # Authentication screens
+│   └── _layout.tsx          # Root navigation
+├── components/              # Reusable UI components
+├── hooks/                   # Custom React hooks
+├── lib/                     # External service configs
+└── constants/               # App constants
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+[Your License Here]
