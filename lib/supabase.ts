@@ -65,11 +65,15 @@ export interface UserProfile {
 }
 
 export interface OnboardingData {
+  firstName?: string;
+  lastName?: string;
   age?: number;
-  account_count?: number;
+  accountCount?: number;
   assets?: number;
   liabilities?: number;
   salary?: number;
-  salary_frequency?: "weekly" | "biweekly" | "monthly";
-  next_pay_date?: string;
+  salaryFrequency?: "weekly" | "biweekly" | "monthly";
+  nextPayDate?: string;
+  hasUploadedStatement?: boolean;
+  hasAddedTransaction?: boolean;
 }

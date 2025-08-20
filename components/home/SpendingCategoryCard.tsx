@@ -1,221 +1,154 @@
-import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { ThemedText } from "../ThemedText";
-import { ThemedView } from "../ThemedView";
-import { useThemeColor } from "@/hooks/useThemeColor";
+import React, { useState } from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { ThemedText } from '@/components/ThemedText';
+import { AppColors } from '@/constants/Colors';
 
 interface SpendingCategory {
-  id: string;
   name: string;
   amount: number;
-  budget: number;
   color: string;
-  icon: string;
 }
 
 interface SpendingCategoryCardProps {
   categories: SpendingCategory[];
-  totalSpent: number;
-  onPress: () => void;
+  selectedMonth?: string;
+  onMonthChange?: (month: string) => void;
+  onTapToDigDeeper?: () => void;
 }
 
 export function SpendingCategoryCard({
   categories,
-  totalSpent,
-  onPress,
+  selectedMonth = "This month",
+  onMonthChange,
+  onTapToDigDeeper 
 }: SpendingCategoryCardProps) {
-  const cardBackground = useThemeColor(
-    { light: "#f8f9fa", dark: "#1a1a1a" },
-    "background"
+  const totalSpending = categories.reduce((sum, category) => sum + category.amount, 0);
+  const largestCategory = categories.reduce((max, category) => 
+    category.amount > max.amount ? category : max, categories[0]
   );
-  const borderColor = useThemeColor({ light: "#e1e5e9", dark: "#333" }, "text");
-
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString()}`;
-  };
-
-  const calculatePercentage = (amount: number) => {
-    return totalSpent > 0 ? ((amount / totalSpent) * 100).toFixed(0) : "0";
-  };
-
-  const getStatusColor = (spent: number, budget: number) => {
-    const percentage = (spent / budget) * 100;
-    if (percentage >= 90) return "#EF4444"; // Red
-    if (percentage >= 75) return "#F59E0B"; // Yellow
-    return "#10B981"; // Green
-  };
+  const largestPercentage = (largestCategory.amount / totalSpending) * 100;
 
   return (
-    <ThemedView
-      style={[
-        styles.container,
-        { backgroundColor: cardBackground, borderColor },
-      ]}
-      onTouchEnd={onPress}
-    >
-      <View style={styles.header}>
-        <ThemedText type="subtitle">Spending This Month</ThemedText>
-        <ThemedText style={styles.totalAmount}>
-          {formatCurrency(totalSpent)}
-        </ThemedText>
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <ThemedText style={styles.cardTitle}>Spending Category</ThemedText>
+        <TouchableOpacity style={styles.dropdown}>
+          <ThemedText style={styles.dropdownText}>{selectedMonth}</ThemedText>
+          <ThemedText style={styles.dropdownArrow}>▼</ThemedText>
+        </TouchableOpacity>
       </View>
-
-      <ScrollView
-        style={styles.categoriesContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {categories.slice(0, 5).map((category) => (
-          <View key={category.id} style={styles.categoryRow}>
-            <View style={styles.categoryLeft}>
-              <View
-                style={[
-                  styles.categoryIcon,
-                  { backgroundColor: category.color },
-                ]}
-              >
-                <ThemedText style={styles.iconText}>{category.icon}</ThemedText>
-              </View>
-              <View style={styles.categoryInfo}>
-                <ThemedText style={styles.categoryName}>
-                  {category.name}
-                </ThemedText>
-                <ThemedText style={styles.categoryBudget}>
-                  of {formatCurrency(category.budget)} budget
-                </ThemedText>
+      <View style={styles.donutChart}>
+        <View style={styles.donutChartContainer}>
+          <View style={styles.donutChartInner}>
+            <ThemedText style={styles.donutChartText}>{Math.round(largestPercentage)}%</ThemedText>
               </View>
             </View>
-
-            <View style={styles.categoryRight}>
-              <ThemedText style={styles.categoryAmount}>
-                {formatCurrency(category.amount)}
-              </ThemedText>
-              <ThemedText style={styles.categoryPercentage}>
-                {calculatePercentage(category.amount)}%
+        <View style={styles.chartLegend}>
+          {categories.map((category, index) => (
+            <View key={index} style={styles.legendItem}>
+              <View style={[styles.legendColor, { backgroundColor: category.color }]} />
+              <ThemedText style={styles.legendText}>
+                {category.name} {category.amount > 0 ? `$${category.amount}` : ''}
               </ThemedText>
             </View>
-
-            {/* Progress bar */}
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${Math.min(
-                      (category.amount / category.budget) * 100,
-                      100
-                    )}%`,
-                    backgroundColor: getStatusColor(
-                      category.amount,
-                      category.budget
-                    ),
-                  },
-                ]}
-              />
+          ))}
             </View>
           </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <ThemedText style={styles.viewAllText}>
-          Tap to view all categories
+      <TouchableOpacity onPress={onTapToDigDeeper}>
+        <ThemedText style={styles.chartPrompt}>
+          Where's your cash going? Slice it up! Tap to dig deeper
         </ThemedText>
+      </TouchableOpacity>
       </View>
-    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
+    backgroundColor: AppColors.gray[0],
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     marginHorizontal: 16,
-    marginVertical: 8,
-    borderWidth: 1,
-    shadowColor: "#000",
+    marginBottom: 16,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowRadius: 4,
     elevation: 3,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: AppColors.gray[500],
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: AppColors.gray[400],
+  },
+  dropdownArrow: {
+    fontSize: 12,
+    color: AppColors.gray[400],
+  },
+  donutChart: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  donutChartContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: AppColors.gray[200],
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 16,
   },
-  totalAmount: {
-    fontSize: 20,
-    fontWeight: "bold",
+  donutChartInner: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: AppColors.gray[0],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoriesContainer: {
-    maxHeight: 200,
+  donutChartText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: AppColors.gray[500],
   },
-  categoryRow: {
-    marginBottom: 16,
-  },
-  categoryLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+  chartLegend: {
+    flexDirection: 'row',
+    gap: 16,
     marginBottom: 8,
   },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  iconText: {
-    fontSize: 18,
+  legendColor: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
-  categoryInfo: {
-    flex: 1,
+  legendText: {
+    fontSize: 12,
+    color: AppColors.gray[400],
   },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  categoryBudget: {
+  chartPrompt: {
     fontSize: 14,
-    opacity: 0.7,
-  },
-  categoryRight: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    alignItems: "flex-end",
-  },
-  categoryAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  categoryPercentage: {
-    fontSize: 14,
-    opacity: 0.7,
-  },
-  progressBar: {
-    height: 4,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 2,
-    marginTop: 8,
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 2,
-  },
-  footer: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    alignItems: "center",
-  },
-  viewAllText: {
-    fontSize: 14,
-    opacity: 0.7,
+    color: AppColors.gray[400],
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
 });

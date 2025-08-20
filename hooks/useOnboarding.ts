@@ -52,6 +52,7 @@ export function useOnboarding() {
 
       setIsOnboardingCompleted(true);
       setOnboardingData(data);
+      console.log("onboarding data",data);
     } catch (error) {
       console.error("Error saving onboarding completion:", error);
       throw error;

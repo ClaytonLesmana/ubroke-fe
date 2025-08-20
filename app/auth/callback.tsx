@@ -7,102 +7,41 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthCallback() {
   const [message, setMessage] = useState("Completing sign in...");
-  const { user, isEmailVerified } = useAuth();
+  const { session, user } = useAuth();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the current session to see if the user is authenticated
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error("Auth callback error:", error);
-          setMessage("Authentication failed");
-          Alert.alert("Authentication Error", error.message, [
-            { text: "OK", onPress: () => router.replace("/onboarding/auth") },
-          ]);
+        if (!session?.user) {
+          setMessage("Waiting for authentication...");
           return;
         }
 
-        if (session?.user) {
-          // Check if this is from email verification
-          if (session.user.email_confirmed_at) {
-            setMessage("Email verified successfully!");
+        setMessage("Signing you in...");
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("onboarding_completed")
+          .eq("id", session.user.id)
+          .single();
 
-            // Check if user has completed onboarding
-            const { data: profile } = await supabase
-              .from("user_profiles")
-              .select("onboarding_completed")
-              .eq("id", session.user.id)
-              .single();
-
-            setTimeout(() => {
-              if (profile?.onboarding_completed) {
-                router.replace("/(tabs)");
-              } else {
-                router.replace("/onboarding/profile");
-              }
-            }, 1500);
-          } else {
-            // Regular sign in
-            setMessage("Signing you in...");
-            setTimeout(() => {
-              router.replace("/onboarding/profile");
-            }, 1000);
-          }
+        if (profile?.onboarding_completed) {
+          router.replace("/(tabs)");
         } else {
-          // No session, redirect to auth
-          setTimeout(() => {
-            router.replace("/onboarding/auth");
-          }, 1000);
+          router.replace("/onboarding/profile");
         }
       } catch (error) {
         console.error("Unexpected error in auth callback:", error);
         setMessage("Something went wrong");
-        setTimeout(() => {
-          router.replace("/onboarding/auth");
-        }, 2000);
+        setTimeout(() => router.replace("/onboarding/auth"), 2000);
       }
     };
 
     handleAuthCallback();
-  }, []);
+  }, [session]);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#1a1a2e",
-        padding: 20,
-      }}
-    >
-      <ThemedText
-        style={{
-          color: "#FFFFFF",
-          fontSize: 18,
-          textAlign: "center",
-          marginBottom: 20,
-        }}
-      >
-        {message}
-      </ThemedText>
-
-      {message.includes("verified") && (
-        <ThemedText
-          style={{
-            color: "#00FF7F",
-            fontSize: 16,
-            textAlign: "center",
-          }}
-        >
-          Welcome to UBroke! 🎉
-        </ThemedText>
-      )}
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1a1a2e", padding: 20 }}>
+      <ThemedText style={{ color: "#FFFFFF", fontSize: 18, textAlign: "center", marginBottom: 20 }}>{message}</ThemedText>
     </View>
   );
 }

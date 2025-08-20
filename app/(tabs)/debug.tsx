@@ -5,16 +5,18 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Platform,
 } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
+import { router } from "expo-router";
 
 export default function DebugScreen() {
   const { resetOnboarding, onboardingData } = useOnboarding();
-  const { user, session, userProfile, isAuthenticated, isEmailVerified } =
+  const { user, session, userProfile, isAuthenticated, isEmailVerified, signOut, refreshSession } =
     useAuth();
   const [connectionStatus, setConnectionStatus] =
     useState<string>("Testing...");
@@ -131,6 +133,75 @@ export default function DebugScreen() {
     testSupabaseConnection();
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out? This will log you out of your account.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { error } = await signOut();
+              if (error) {
+                Alert.alert("Error", `Failed to sign out: ${error.message}`);
+              } else {
+                Alert.alert(
+                  "Signed Out",
+                  "You have been successfully signed out.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => router.replace("/onboarding/auth"),
+                    },
+                  ]
+                );
+              }
+            } catch (error: any) {
+              Alert.alert("Error", `Failed to sign out: ${error.message}`);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleTestGoogleOAuth = async () => {
+    try {
+      console.log("Testing Google OAuth configuration...");
+      
+      // Test the OAuth URL generation
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: Platform.OS === "web" 
+            ? window.location.origin 
+            : "ubroke://auth/callback",
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) {
+        Alert.alert(
+          "Google OAuth Configuration Error",
+          `Error: ${error.message}\n\nThis usually means:\n1. Google OAuth is not configured in Supabase\n2. Redirect URLs are incorrect\n3. Google Cloud Console setup is incomplete`
+        );
+      } else {
+        Alert.alert(
+          "Google OAuth Configuration OK",
+          "OAuth URL generated successfully. The issue might be with the redirect flow or browser handling."
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Google OAuth Test Failed",
+        `Error: ${error.message}`
+      );
+    }
+  };
+
   const handleTestEmail = async () => {
     const testEmail = "test@example.com"; // Replace with your email
 
@@ -180,6 +251,29 @@ export default function DebugScreen() {
     );
   };
 
+  const handleRefreshSession = async () => {
+    try {
+      console.log("Refreshing session...");
+      const session = await refreshSession();
+      if (session) {
+        Alert.alert(
+          "Session Refreshed",
+          `Session found for user: ${session.user?.email}`
+        );
+      } else {
+        Alert.alert(
+          "Session Refresh",
+          "No session found"
+        );
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Session Refresh Failed",
+        `Error: ${error.message}`
+      );
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -221,6 +315,18 @@ export default function DebugScreen() {
           >
             <ThemedText style={styles.testButtonText}>
               Test Email Verification
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.testButton,
+              { backgroundColor: "#DB4437", marginTop: 8 },
+            ]}
+            onPress={handleTestGoogleOAuth}
+          >
+            <ThemedText style={styles.testButtonText}>
+              Test Google OAuth Config
             </ThemedText>
           </TouchableOpacity>
         </View>
@@ -295,6 +401,7 @@ export default function DebugScreen() {
         )}
 
         {/* Action Buttons */}
+        <View style={styles.actionButtonsContainer}>
         <TouchableOpacity
           style={styles.resetButton}
           onPress={handleResetOnboarding}
@@ -303,6 +410,25 @@ export default function DebugScreen() {
             Reset Onboarding Flow
           </ThemedText>
         </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.resetButton, { backgroundColor: "#3B82F6" }]}
+            onPress={handleRefreshSession}
+          >
+            <ThemedText style={styles.resetButtonText}>
+              Refresh Session
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.resetButton, { backgroundColor: "#DC2626" }]}
+            onPress={handleLogout}
+          >
+            <ThemedText style={styles.resetButtonText}>
+              Sign Out
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
 
         <ThemedText style={styles.note}>
           Note: This tab is for testing purposes only and should be removed in
@@ -366,14 +492,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  actionButtonsContainer: {
+    marginBottom: 20,
+    marginTop: 10,
+  },
   resetButton: {
     backgroundColor: "#EF4444",
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 20,
-    marginTop: 10,
+    marginBottom: 12,
   },
   resetButtonText: {
     color: "#FFFFFF",

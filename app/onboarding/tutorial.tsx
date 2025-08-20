@@ -1,467 +1,378 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   ScrollView,
-  Dimensions,
+  SafeAreaView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { useOnboarding } from "@/hooks/useOnboarding";
-
-const { width } = Dimensions.get("window");
-
-const tutorialSlides = [
-  {
-    id: 1,
-    title: "Home: Your Money Hub 📊",
-    description:
-      "Your money hub with net worth, budgets, and goals. Check your vibe!",
-    icon: "🏠",
-    color: "#00FF7F",
-  },
-  {
-    id: 2,
-    title: "Chat: AI Money Coach 🐷",
-    description:
-      "Ask our sassy AI piggy bank for money tips and financial advice!",
-    icon: "💬",
-    color: "#FF69B4",
-  },
-  {
-    id: 3,
-    title: "More Features Coming! 🚀",
-    description:
-      "Community, Learn, and Portfolio are dropping soon! Stay tuned!",
-    icon: "✨",
-    color: "#8B5CF6",
-  },
-];
-
+import { useAuth } from "@/hooks/useAuth";
+import { AppColors } from "@/constants/Colors";
+import { Image } from "expo-image";
 export default function TutorialPage() {
-  const [currentTutorialSlide, setCurrentTutorialSlide] = useState(0);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { completeOnboarding, onboardingData } = useOnboarding();
+  const { isAuthenticated, user, updateOnboardingData } = useAuth();
 
   const handleUploadStatement = async () => {
     Alert.alert("Upload Statement", "Statement upload feature coming soon!");
     // TODO: Implement statement upload
-    try {
-      await completeOnboarding({
-        ...onboardingData,
-        hasUploadedStatement: true,
-      });
-      router.replace("/(tabs)" as any);
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-    }
   };
 
   const handleAddTransaction = async () => {
     Alert.alert("Add Transaction", "Transaction entry feature coming soon!");
     // TODO: Implement transaction entry
-    try {
-      await completeOnboarding({
-        ...onboardingData,
-        hasAddedTransaction: true,
-      });
-      router.replace("/(tabs)" as any);
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-    }
   };
 
-  const handleFinish = async () => {
+  const handleNext = async () => {
+    setIsLoading(true);
     try {
       await completeOnboarding(onboardingData || {});
-      router.replace("/(tabs)" as any);
+      
+              // Try to update database with user data
+        try {
+          await updateOnboardingData({
+            firstName: onboardingData?.firstName || "",
+            lastName: onboardingData?.lastName || "",
+            age: onboardingData?.age || null,
+            accountCount: onboardingData?.accountCount || null,
+            assets: onboardingData?.assets || null,
+            liabilities: onboardingData?.liabilities || null,
+            salary: onboardingData?.salary || null,
+            salaryFrequency: onboardingData?.salaryFrequency || null,
+            nextPayDate: onboardingData?.nextPayDate || null,
+          });
+          console.log("Database updated successfully");
+        } catch (dbError) {
+          console.error("Database update failed:", dbError);
+          Alert.alert(
+            "Partial Success",
+            "Your onboarding data was saved locally, but there was an issue syncing with the server. You can continue using the app and your data will sync later."
+          );
+        }
+      
+      router.replace("/(tabs)");
     } catch (error) {
       console.error("Error completing onboarding:", error);
+      Alert.alert("Onboarding Error", "Failed to complete onboarding. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleTutorialNext = () => {
-    if (currentTutorialSlide < tutorialSlides.length - 1) {
-      const nextSlide = currentTutorialSlide + 1;
-      setCurrentTutorialSlide(nextSlide);
-      scrollViewRef.current?.scrollTo({
-        x: nextSlide * (width - 48),
-        animated: true,
-      });
+  const handleSkip = async () => {
+    setIsLoading(true);
+    try {
+      await completeOnboarding(onboardingData || {});
+      router.replace("/(tabs)");
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      Alert.alert("Onboarding Error", "Failed to complete onboarding. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  const handleTutorialPrev = () => {
-    if (currentTutorialSlide > 0) {
-      const prevSlide = currentTutorialSlide - 1;
-      setCurrentTutorialSlide(prevSlide);
-      scrollViewRef.current?.scrollTo({
-        x: prevSlide * (width - 48),
-        animated: true,
-      });
-    }
-  };
-
-  const renderTutorialSlide = (
-    slide: (typeof tutorialSlides)[0],
-    index: number
-  ) => (
-    <View key={slide.id} style={styles.tutorialSlideContainer}>
-      <LinearGradient
-        colors={[slide.color + "20", slide.color + "10"]}
-        style={styles.tutorialCard}
-      >
-        <View style={[styles.tutorialIcon, { backgroundColor: slide.color }]}>
-          <ThemedText style={styles.tutorialIconText}>{slide.icon}</ThemedText>
-        </View>
-        <ThemedText style={styles.tutorialTitle}>{slide.title}</ThemedText>
-        <ThemedText style={styles.tutorialDescription}>
-          {slide.description}
-        </ThemedText>
-      </LinearGradient>
-    </View>
-  );
 
   return (
-    <LinearGradient
-      colors={["#1F2937", "#374151", "#4B5563"]} // Dark gray gradient
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <ThemedText style={styles.headerText}>
-              Kick Off Your Money Game! 🎮
+    <View style={{
+      flex: 1,
+      backgroundColor: AppColors.gray[0]
+    }}>
+      <SafeAreaView style={{
+        flex: 1,
+      }}>
+        <ScrollView 
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 40,
+            paddingBottom: 40,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Progress Indicator */}
+          <View style={{
+            width: '100%',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            gap: 20,
+            marginBottom: 40,
+          }}>
+            <ThemedText style={{
+              textAlign: 'center',
+              justifyContent: 'center',
+              color: AppColors.gray[500],
+              fontSize: 12,
+              fontWeight: '600',
+              lineHeight: 18,
+            }}>
+              Step 3/3 complete
             </ThemedText>
-            <ThemedText style={styles.subHeaderText}>
-              Drop a bank statement or add a purchase to start tracking. Or skip
-              and explore!
-            </ThemedText>
-          </View>
-
-          {/* Quick Actions */}
-          <View style={styles.quickActionsContainer}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleUploadStatement}
-            >
-              <LinearGradient
-                colors={["#3B82F6", "#1D4ED8"]} // Blue gradient
-                style={styles.actionButtonGradient}
-              >
-                <ThemedText style={styles.actionButtonIcon}>📄</ThemedText>
-                <ThemedText style={styles.actionButtonText}>
-                  Upload Bank Statement
-                </ThemedText>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleAddTransaction}
-            >
-              <LinearGradient
-                colors={["#10B981", "#059669"]} // Green gradient
-                style={styles.actionButtonGradient}
-              >
-                <ThemedText style={styles.actionButtonIcon}>💸</ThemedText>
-                <ThemedText style={styles.actionButtonText}>
-                  Add Manual Transaction
-                </ThemedText>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.skipActionButton}
-              onPress={handleFinish}
-            >
-              <ThemedText style={styles.skipActionText}>
-                Explore Now →
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tutorial Carousel */}
-          <View style={styles.tutorialContainer}>
-            <ThemedText style={styles.tutorialHeaderText}>
-              App Tour ✨
-            </ThemedText>
-
-            {/* Tutorial Slides */}
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              style={styles.tutorialScrollView}
-              contentContainerStyle={styles.tutorialScrollContent}
-              onMomentumScrollEnd={(event) => {
-                const slideIndex = Math.round(
-                  event.nativeEvent.contentOffset.x / (width - 48)
-                );
-                setCurrentTutorialSlide(slideIndex);
-              }}
-            >
-              {tutorialSlides.map((slide, index) =>
-                renderTutorialSlide(slide, index)
-              )}
-            </ScrollView>
-
-            {/* Tutorial Navigation */}
-            <View style={styles.tutorialNavigation}>
-              <TouchableOpacity
-                style={[
-                  styles.tutorialNavButton,
-                  currentTutorialSlide === 0 &&
-                    styles.tutorialNavButtonDisabled,
-                ]}
-                onPress={handleTutorialPrev}
-                disabled={currentTutorialSlide === 0}
-              >
-                <ThemedText style={styles.tutorialNavButtonText}>
-                  ← Prev
-                </ThemedText>
-              </TouchableOpacity>
-
-              <View style={styles.tutorialDots}>
-                {tutorialSlides.map((_, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.tutorialDot,
-                      index === currentTutorialSlide &&
-                        styles.tutorialDotActive,
-                    ]}
-                  />
-                ))}
+            <View style={{
+              alignSelf: 'stretch',
+              height: 4,
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              gap: 12,
+              flexDirection: 'row',
+            }}>
+              <View style={{
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                gap: 4,
+                flexDirection: 'row',
+              }}>
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor: AppColors.primary[300],
+                  borderRadius: 55,
+                }} />
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor: AppColors.primary[300],
+                  borderRadius: 55,
+                }} />
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor: AppColors.primary[300],
+                  borderRadius: 55,
+                }} />
               </View>
+            </View>
+          </View>
 
+          {/* Header */}
+          <View style={{
+            marginBottom: 40,
+          }}>
+            <ThemedText style={{
+              fontSize: 32,
+              fontWeight: '700',
+              color: AppColors.gray[500],
+              lineHeight: 40,
+              marginBottom: 12,
+              textAlign: 'center',
+            }}>
+              Kick Off Your Money Game
+            </ThemedText>
+            <ThemedText style={{
+              fontSize: 16,
+              fontWeight: '400',
+              color: AppColors.gray[400],
+              lineHeight: 24,
+              textAlign: 'center',
+            }}>
+              Drop a bank statement or add a purchase to start
+            </ThemedText>
+          </View>
+
+          {/* Upload Bank Statement Area */}
+          <View style={{
+            marginBottom: 24,
+          }}>
+            <View style={{
+              borderWidth: 2,
+              borderColor: AppColors.gray[200],
+              borderStyle: 'dashed',
+              borderRadius: 16,
+              padding: 32,
+              alignItems: 'center',
+              backgroundColor: AppColors.gray[0],
+            }}>
+              {/* Document Icon */}
+              <View style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}>
+                    <Image
+                      source={require('@/assets/images/documentIcon.png')}
+                      style={{ width: 42, height: 42 }}
+                    />
+              </View>
+              
+              {/* Upload Text */}
+              <ThemedText style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: AppColors.gray[500],
+                marginBottom: 8,
+                textAlign: 'center',
+              }}>
+                Upload Bank Statement
+              </ThemedText>
+              
+              <ThemedText style={{
+                fontSize: 14,
+                color: AppColors.gray[400],
+                marginBottom: 24,
+                textAlign: 'center',
+              }}>
+                Supported format: PDF/CSV
+              </ThemedText>
+              
+              {/* Upload Button */}
               <TouchableOpacity
-                style={[
-                  styles.tutorialNavButton,
-                  currentTutorialSlide === tutorialSlides.length - 1 &&
-                    styles.tutorialNavButtonDisabled,
-                ]}
-                onPress={handleTutorialNext}
-                disabled={currentTutorialSlide === tutorialSlides.length - 1}
+                style={{
+                  backgroundColor: '#936DFF',
+                  paddingLeft: 32,
+                  paddingRight: 32,
+                  paddingTop: 8,
+                  paddingBottom: 8,
+                  borderRadius: 99,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: 'rgba(13, 13, 18, 0.12)',
+                  shadowOffset: { width: 1, height: 2 },
+                  shadowOpacity: 1,
+                  shadowRadius: 4,
+                  elevation: 4,
+                  borderWidth: 1,
+                  borderColor: 'rgba(239.91, 234.60, 255, 0.12)',
+                }}
+                onPress={handleUploadStatement}
               >
-                <ThemedText style={styles.tutorialNavButtonText}>
-                  Next →
+                <ThemedText style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: AppColors.gray[0],
+                  lineHeight: 18,
+                  letterSpacing: 0.24,
+                  textAlign: 'center',
+                }}>
+                  Upload File
                 </ThemedText>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Finish Button */}
-          <TouchableOpacity style={styles.finishButton} onPress={handleFinish}>
-            <LinearGradient
-              colors={["#00FF7F", "#32CD32"]} // Neon green gradient
-              style={styles.finishButtonGradient}
-            >
-              <ThemedText style={styles.finishButtonText}>
-                Finish & Start Budgeting! 🎉
+          {/* Add Manual Transaction Button */}
+          <TouchableOpacity
+            style={{
+              backgroundColor: AppColors.gray[0],
+              borderRadius: 32,
+              borderWidth: 1,
+              borderColor: AppColors.gray[200],
+              paddingVertical: 16,
+              paddingHorizontal: 20,
+              alignItems: 'center',
+              marginBottom: 40,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}
+            onPress={handleAddTransaction}
+          >
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+              <Image source={require('@/assets/images/addIcon.png')} style={{ width: 18, height: 18, marginRight: 8 }}></Image>
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '500',
+                color: AppColors.gray[500],
+              }}>
+                Add Manual Transaction
               </ThemedText>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
 
-          {/* Microcopy */}
-          <ThemedText style={styles.microcopy}>
-            Let's make your wallet pop! 💥
+          {/* Action Buttons */}
+          <View style={{
+            gap: 16,
+            marginBottom: 24,
+          }}>
+            <TouchableOpacity
+              style={{
+                backgroundColor: AppColors.primary[300],
+                borderRadius: 32,
+                paddingVertical: 16,
+                alignItems: 'center',
+                shadowColor: 'rgba(147, 109, 255, 0.3)',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 1,
+                shadowRadius: 8,
+                elevation: 4,
+                opacity: isLoading ? 0.6 : 1,
+              }}
+              onPress={handleNext}
+              disabled={isLoading}
+            >
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: AppColors.gray[0],
+              }}>
+                {isLoading ? "Loading..." : "Finish"}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          {/* Footer Text */}
+          <ThemedText style={{
+            fontSize: 14,
+            color: AppColors.gray[400],
+            textAlign: 'center',
+            fontStyle: 'italic',
+          }}>
+            Let's make your wallet pop!
           </ThemedText>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Development Navigation */}
+      <View style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#f0f0f0',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={{ color: '#666', fontSize: 12 }}>← Back</ThemedText>
+        </TouchableOpacity>
+        
+        <View style={{
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 12,
+        }}>
+          <ThemedText style={{ fontSize: 12, color: '#666' }}>5/5</ThemedText>
         </View>
-      </ScrollView>
-    </LinearGradient>
+        
+        <TouchableOpacity
+          style={{
+            backgroundColor: AppColors.primary[300],
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.push('/(tabs)')}
+        >
+          <ThemedText style={{ color: 'white', fontSize: 12 }}>Finish →</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subHeaderText: {
-    fontSize: 16,
-    color: "#D1D5DB",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  quickActionsContainer: {
-    gap: 16,
-    marginBottom: 30,
-  },
-  actionButton: {
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  actionButtonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    gap: 12,
-  },
-  actionButtonIcon: {
-    fontSize: 24,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  skipActionButton: {
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  skipActionText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FF69B4",
-    textDecorationLine: "underline",
-  },
-  tutorialContainer: {
-    flex: 1,
-    marginVertical: 20,
-  },
-  tutorialHeaderText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  tutorialScrollView: {
-    flex: 1,
-  },
-  tutorialScrollContent: {
-    paddingHorizontal: 0,
-  },
-  tutorialSlideContainer: {
-    width: width - 48,
-    paddingHorizontal: 8,
-  },
-  tutorialCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-    minHeight: 200,
-    justifyContent: "center",
-  },
-  tutorialIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  tutorialIconText: {
-    fontSize: 28,
-  },
-  tutorialTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  tutorialDescription: {
-    fontSize: 14,
-    color: "#D1D5DB",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  tutorialNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    paddingHorizontal: 16,
-  },
-  tutorialNavButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  tutorialNavButtonDisabled: {
-    opacity: 0.3,
-  },
-  tutorialNavButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-  tutorialDots: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  tutorialDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  tutorialDotActive: {
-    backgroundColor: "#00FF7F",
-  },
-  finishButton: {
-    borderRadius: 16,
-    shadowColor: "#00FF7F",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    marginVertical: 20,
-  },
-  finishButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  finishButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000000",
-  },
-  microcopy: {
-    fontSize: 14,
-    color: "#D1D5DB",
-    textAlign: "center",
-    fontWeight: "500",
-  },
-});

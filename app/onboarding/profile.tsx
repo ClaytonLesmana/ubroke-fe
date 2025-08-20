@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   Alert,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/hooks/useAuth";
+import { AppColors } from "@/constants/Colors";
 
 export default function ProfilePage() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [accountCount, setAccountCount] = useState("");
   const [assets, setAssets] = useState("");
@@ -24,14 +22,13 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { updateOnboardingData, onboardingData } = useOnboarding();
-  const { user, userProfile, isEmailVerified, resendEmailVerification } =
+  const { user, userProfile, isEmailVerified, resendEmailVerification, isAuthenticated } =
     useAuth();
 
   useEffect(() => {
     // Pre-fill with existing data
     if (onboardingData) {
-      setFirstName(onboardingData.firstName || "");
-      setLastName(onboardingData.lastName || "");
+      setName(onboardingData.name || "");
       setAge(onboardingData.age?.toString() || "");
       setAccountCount(onboardingData.accountCount?.toString() || "");
       setAssets(onboardingData.assets?.toString() || "");
@@ -40,8 +37,7 @@ export default function ProfilePage() {
 
     // Pre-fill with user profile data if available
     if (userProfile) {
-      setFirstName(userProfile.first_name || "");
-      setLastName(userProfile.last_name || "");
+      setName(userProfile.first_name && userProfile.last_name ? `${userProfile.first_name} ${userProfile.last_name}` : "");
       setAge(userProfile.age?.toString() || "");
       setAccountCount(userProfile.account_count?.toString() || "");
       setAssets(userProfile.assets?.toString() || "");
@@ -94,8 +90,8 @@ export default function ProfilePage() {
 
   const validateAndContinue = async () => {
     // Basic validation
-    if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert("Name Required", "Please enter your first and last name");
+    if (!name.trim()) {
+      Alert.alert("Name Required", "Please enter your name");
       return;
     }
 
@@ -108,8 +104,7 @@ export default function ProfilePage() {
 
     try {
       const profileData = {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
+        name: name.trim(),
         age: age ? parseInt(age) : undefined,
         accountCount: accountCount ? parseInt(accountCount) : undefined,
         assets: parseCurrency(assets),
@@ -130,335 +125,362 @@ export default function ProfilePage() {
   };
 
   return (
-    <LinearGradient
-      colors={["#1a1a2e", "#16213e", "#0f3460"]}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <ThemedText style={styles.headerText}>
-            Tell us about yourself 👤
-          </ThemedText>
-          <ThemedText style={styles.subHeaderText}>
-            Help us personalize your experience
-          </ThemedText>
-        </View>
-
-        {/* Email Verification Banner */}
-        {user && !isEmailVerified && (
-          <ThemedView style={styles.verificationBanner}>
-            <ThemedText style={styles.verificationText}>
-              📧 Please verify your email address ({user.email})
+    <View style={{
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+    }}>
+      <SafeAreaView style={{
+        flex: 1,
+      }}>
+        <ScrollView 
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 40,
+            paddingBottom: 40,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Progress Indicator */}
+          <View style={{
+            width: '100%',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            gap: 20,
+            marginBottom: 40,
+          }}>
+            <ThemedText style={{
+              textAlign: 'center',
+              justifyContent: 'center',
+              color: AppColors.gray[500],
+              fontSize: 12,
+              fontWeight: '600',
+              lineHeight: 18,
+            }}>
+              Step 1/3 complete
             </ThemedText>
-            <TouchableOpacity
-              onPress={handleResendVerification}
-              disabled={isLoading}
-              style={styles.resendButton}
-            >
-              <ThemedText style={styles.resendButtonText}>
-                {isLoading ? "Sending..." : "Resend Email"}
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-        )}
-
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <ThemedText style={styles.progressText}>Step 1 of 2 (50%)</ThemedText>
-          <View style={styles.progressBar}>
-            <LinearGradient
-              colors={["#00FF7F", "#32CD32"]}
-              style={[styles.progressFill, { width: "50%" }]}
-            />
-          </View>
-        </View>
-
-        {/* Form */}
-        <ThemedView style={styles.formContainer}>
-          {/* Name Fields */}
-          <View style={styles.row}>
-            <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-              <ThemedText style={styles.inputLabel}>First Name *</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Alex"
-                placeholderTextColor="#666"
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-              <ThemedText style={styles.inputLabel}>Last Name *</ThemedText>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Smith"
-                placeholderTextColor="#666"
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-              />
+            <View style={{
+              alignSelf: 'stretch',
+              height: 4,
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              gap: 12,
+              flexDirection: 'row',
+            }}>
+              <View style={{
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                gap: 4,
+                flexDirection: 'row',
+              }}>
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor: AppColors.primary[300],
+                  borderRadius: 55,
+                }} />
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor:  AppColors.gray[100],
+                  borderRadius: 55,
+                }} />
+                <View style={{
+                  width: 107,
+                  height: 6,
+                  backgroundColor: AppColors.gray[100],
+                  borderRadius: 55,
+                }} />
+              </View>
             </View>
           </View>
 
-          {/* Age and Account Count */}
-          <View style={styles.row}>
-            <View style={[styles.inputContainer, { flex: 1, marginRight: 8 }]}>
-              <ThemedText style={styles.inputLabel}>Age (optional)</ThemedText>
+          {/* Header */}
+          <View style={{
+            marginBottom: 40,
+          }}>
+            <ThemedText style={{
+              fontSize: 32,
+              fontWeight: '700',
+              color: '#1B1B1B',
+              lineHeight: 40,
+              marginBottom: 12,
+              textAlign: 'center',
+            }}>
+              Spill Your Money Tea!
+            </ThemedText>
+            <ThemedText style={{
+              fontSize: 16,
+              fontWeight: '400',
+              color: '#848484',
+              lineHeight: 24,
+              textAlign: 'center',
+            }}>
+              Tell us a bit about you to kick things off. Skip if you're feeling shy.
+            </ThemedText>
+          </View>
+
+          {/* Form */}
+          <View style={{
+            flex: 1,
+          }}>
+            {/* Name */}
+            <View style={{
+              marginBottom: 20,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 8,
+              }}>Name</ThemedText>
               <TextInput
-                style={styles.textInput}
-                placeholder="25"
-                placeholderTextColor="#666"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="Alex Andrian"
+                placeholderTextColor="#999"
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Age */}
+            <View style={{
+              marginBottom: 20,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 8,
+              }}>Age</ThemedText>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="18"
+                placeholderTextColor="#999"
                 value={age}
                 onChangeText={setAge}
                 keyboardType="numeric"
                 maxLength={3}
               />
             </View>
-            <View style={[styles.inputContainer, { flex: 1, marginLeft: 8 }]}>
-              <ThemedText style={styles.inputLabel}>Bank Accounts</ThemedText>
+
+            {/* Accounts Total */}
+            <View style={{
+              marginBottom: 20,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 8,
+              }}>Accounts total?</ThemedText>
               <TextInput
-                style={styles.textInput}
-                placeholder="3"
-                placeholderTextColor="#666"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="1"
+                placeholderTextColor="#999"
                 value={accountCount}
                 onChangeText={setAccountCount}
                 keyboardType="numeric"
                 maxLength={2}
               />
             </View>
-          </View>
 
-          {/* Assets */}
-          <View style={styles.inputContainer}>
-            <ThemedText style={styles.inputLabel}>
-              Assets (optional) 💰
-            </ThemedText>
-            <TextInput
-              style={styles.textInput}
-              placeholder="$15,000"
-              placeholderTextColor="#666"
-              value={assets ? formatCurrency(assets) : assets}
-              onChangeText={setAssets}
-              keyboardType="numeric"
-            />
-            <ThemedText style={styles.helperText}>
-              Savings, investments, property value, etc.
-            </ThemedText>
-          </View>
+            {/* Assets */}
+            <View style={{
+              marginBottom: 20,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 8,
+              }}>Assets</ThemedText>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="Enter a number"
+                placeholderTextColor="#999"
+                value={assets ? formatCurrency(assets) : assets}
+                onChangeText={setAssets}
+                keyboardType="numeric"
+              />
+            </View>
 
-          {/* Liabilities */}
-          <View style={styles.inputContainer}>
-            <ThemedText style={styles.inputLabel}>
-              Liabilities (optional) 💳
-            </ThemedText>
-            <TextInput
-              style={styles.textInput}
-              placeholder="$5,000"
-              placeholderTextColor="#666"
-              value={liabilities ? formatCurrency(liabilities) : liabilities}
-              onChangeText={setLiabilities}
-              keyboardType="numeric"
-            />
-            <ThemedText style={styles.helperText}>
-              Credit card debt, loans, mortgages, etc.
-            </ThemedText>
-          </View>
+            {/* Liabilities */}
+            <View style={{
+              marginBottom: 40,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 8,
+              }}>Liabilities</ThemedText>
+              <TextInput
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="Enter a number"
+                placeholderTextColor="#999"
+                value={liabilities ? formatCurrency(liabilities) : liabilities}
+                onChangeText={setLiabilities}
+                keyboardType="numeric"
+              />
+            </View>
 
-          {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={handleSkip}
-              disabled={isLoading}
-            >
-              <ThemedText style={styles.skipButtonText}>
-                Skip for now
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.continueButton,
-                isLoading && styles.buttonDisabled,
-              ]}
-              onPress={validateAndContinue}
-              disabled={isLoading}
-            >
-              <LinearGradient
-                colors={["#00FF7F", "#32CD32"]}
-                style={styles.continueButtonGradient}
+            {/* Action Buttons */}
+            <View style={{
+              gap: 16,
+              marginBottom: 24,
+            }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: AppColors.primary[300],
+                  borderRadius: 32,
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  shadowColor: 'rgba(147, 109, 255, 0.3)',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 1,
+                  shadowRadius: 8,
+                  elevation: 4,
+                  opacity: isLoading ? 0.6 : 1,
+                }}
+                onPress={validateAndContinue}
+                disabled={isLoading}
               >
-                <ThemedText style={styles.continueButtonText}>
-                  {isLoading ? "Saving..." : "Continue"}
+                <ThemedText style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#FFFFFF',
+                }}>
+                  {isLoading ? "Loading..." : "Next"}
                 </ThemedText>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+              </TouchableOpacity>
 
-          {/* Privacy Note */}
-          <ThemedText style={styles.privacyNote}>
-            🔒 Your information is secure and never shared with third parties
-          </ThemedText>
-        </ThemedView>
-      </ScrollView>
-    </LinearGradient>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 32,
+                  borderWidth: 2,
+                  borderColor: '#936DFF',
+                  paddingVertical: 16,
+                  alignItems: 'center',
+                  opacity: isLoading ? 0.6 : 1,
+                }}
+                onPress={handleSkip}
+                disabled={isLoading}
+              >
+                <ThemedText style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#936DFF',
+                }}>
+                  Skip
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            {/* Footer Text */}
+            <ThemedText style={{
+              fontSize: 14,
+              color: '#848484',
+              textAlign: 'center',
+              fontStyle: 'italic',
+            }}>
+              No pressure, you can add more later!
+            </ThemedText>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Development Navigation */}
+      <View style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#f0f0f0',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={{ color: '#666', fontSize: 12 }}>← Back</ThemedText>
+        </TouchableOpacity>
+        
+        <View style={{
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 12,
+        }}>
+          <ThemedText style={{ fontSize: 12, color: '#666' }}>3/5</ThemedText>
+        </View>
+        
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#936DFF',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.push('/onboarding/income')}
+        >
+          <ThemedText style={{ color: 'white', fontSize: 12 }}>Next →</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 60,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subHeaderText: {
-    fontSize: 16,
-    color: "#CCCCCC",
-    textAlign: "center",
-  },
-  verificationBanner: {
-    backgroundColor: "rgba(255, 165, 0, 0.2)",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255, 165, 0, 0.3)",
-  },
-  verificationText: {
-    color: "#FFA500",
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  resendButton: {
-    alignSelf: "center",
-    backgroundColor: "rgba(255, 165, 0, 0.2)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  resendButtonText: {
-    color: "#FFA500",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  progressContainer: {
-    marginBottom: 30,
-  },
-  progressText: {
-    fontSize: 14,
-    color: "#CCCCCC",
-    textAlign: "center",
-    marginBottom: 12,
-    fontWeight: "600",
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 4,
-  },
-  formContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  row: {
-    flexDirection: "row",
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#000000",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-  helperText: {
-    fontSize: 12,
-    color: "#CCCCCC",
-    marginTop: 4,
-    fontStyle: "italic",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 20,
-  },
-  skipButton: {
-    flex: 1,
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  skipButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#CCCCCC",
-  },
-  continueButton: {
-    flex: 1,
-    borderRadius: 16,
-    shadowColor: "#00FF7F",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  continueButtonGradient: {
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#000000",
-  },
-  privacyNote: {
-    fontSize: 12,
-    color: "#00FF7F",
-    textAlign: "center",
-    marginTop: 20,
-    fontWeight: "500",
-  },
-});

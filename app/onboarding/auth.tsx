@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   TextInput,
   Alert,
   ScrollView,
+  Image,
+  SafeAreaView,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useAuth } from "@/hooks/useAuth"; // ← Use the Supabase hook
+import { useAuth } from "@/hooks/useAuth";
+import { AppColors } from "@/constants/Colors";
+import { supabase } from "@/lib/supabase";
+
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // ← Use real Supabase auth instead of mock
   const {
     signInWithEmail,
     signUpWithEmail,
@@ -30,17 +33,55 @@ export default function AuthPage() {
     resetPassword,
     isAuthenticated,
     user,
+    session,
   } = useAuth();
 
   // Handle navigation when user becomes authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log("User authenticated, navigating...");
-      setIsLoading(false);
-      // Navigate to profile page to continue onboarding
-      router.replace("/onboarding/profile");
+    console.log("=== NAVIGATION USEFFECT TRIGGERED ===");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("user:", user?.email);
+    console.log("session:", session?.user?.email);
+    console.log("isLoading:", isLoading);
+  
+    if (isAuthenticated && user && !isLoading) {
+      console.log("=== USER AUTHENTICATED - NAVIGATING ===");
+      const checkOnboardingStatus = async () => {
+        try {
+          const AsyncStorage = require("@react-native-async-storage/async-storage").default;
+          const onboardingData = await AsyncStorage.getItem("onboardingData");
+          const parsedData = onboardingData ? JSON.parse(onboardingData) : null;
+          console.log("Onboarding data from AsyncStorage:", parsedData);
+          if (parsedData?.isCompleted) router.replace("/(tabs)");
+          else router.replace("/onboarding/profile");
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+          router.replace("/onboarding/profile");
+        }
+      };
+      checkOnboardingStatus();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, session, isLoading]);
+
+  // Additional effect to handle cases where user might be authenticated but session state is stale
+  useEffect(() => {
+    const checkForExistingSession = async () => {
+      try {
+        const AsyncStorage = require("@react-native-async-storage/async-storage").default;
+        const sessionData = await AsyncStorage.getItem("supabase.auth.token");
+        
+        if (sessionData && !isAuthenticated) {
+          console.log("Found session data in AsyncStorage, attempting to refresh...");
+          // Try to refresh the session
+          await refreshSession();
+        }
+      } catch (error) {
+        console.error("Error checking for existing session:", error);
+      }
+    };
+
+    checkForExistingSession();
+  }, []);
 
   const validateForm = () => {
     if (!email.trim()) {
@@ -64,15 +105,6 @@ export default function AuthPage() {
         "Password Too Short",
         "Password must be at least 6 characters long"
       );
-      return false;
-    }
-
-    if (
-      !isLogin &&
-      !showForgotPassword &&
-      (!firstName.trim() || !lastName.trim())
-    ) {
-      Alert.alert("Name Required", "Please enter your first and last name");
       return false;
     }
 
@@ -124,7 +156,6 @@ export default function AuthPage() {
     }
   };
 
-  // ← Real email authentication
   const handleAuth = async () => {
     if (!validateForm()) return;
 
@@ -141,14 +172,10 @@ export default function AuthPage() {
       if (isLogin) {
         result = await signInWithEmail(email.trim(), password);
       } else {
-        result = await signUpWithEmail(email.trim(), password, {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-        });
+        result = await signUpWithEmail(email.trim(), password);
       }
 
       if (result.error) {
-        // Handle specific error messages
         let errorMessage = result.error.message;
 
         if (result.error.message.includes("Invalid login credentials")) {
@@ -168,7 +195,6 @@ export default function AuthPage() {
         return;
       }
 
-      // For signup, show confirmation message
       if (!isLogin && result.data?.user && !result.data.session) {
         Alert.alert(
           "Verification Email Sent",
@@ -177,8 +203,8 @@ export default function AuthPage() {
             {
               text: "OK",
               onPress: () => {
-                setIsLogin(true); // Switch to login mode
-                setPassword(""); // Clear password
+                setIsLogin(true);
+                setPassword("");
               },
             },
           ]
@@ -186,14 +212,10 @@ export default function AuthPage() {
         return;
       }
 
-      // For successful login, don't set loading to false - let navigation handle it
       if (isLogin && result.data?.session) {
-        // Login successful - navigation will be handled by auth state change
-        // Don't set loading to false here
         return;
       }
 
-      // For other cases, stop loading
       setIsLoading(false);
     } catch (error: any) {
       Alert.alert(
@@ -201,134 +223,181 @@ export default function AuthPage() {
         error.message || "Something went wrong."
       );
       setIsLoading(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // ← Real Google authentication
   const handleGoogleAuth = async () => {
     setIsLoading(true);
-
+    console.log("=== GOOGLE AUTH STARTED ===");
     try {
       const result = await signInWithGoogle();
-
+      console.log("Google auth result:", result);
       if (result.error) {
+        console.error("Google auth error:", result.error);
         Alert.alert("Google Sign-In Error", result.error.message);
-        return;
       }
-
-      // Auth state change will handle navigation
     } catch (error: any) {
-      Alert.alert(
-        "Google Sign-In Error",
-        error.message || "Google sign-in failed."
-      );
+      console.error("Google auth catch block error:", error);
+      Alert.alert("Google Sign-In Error", error.message || "Google sign-in failed.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={["#1a1a2e", "#16213e", "#0f3460"]}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
+    <View style={{
+      flex: 1,
+      backgroundColor: '#FFFFFF',
+    }}>
+      <SafeAreaView style={{
+        flex: 1,
+      }}>
+        <ScrollView 
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 40,
+            paddingBottom: 40,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo */}
+          <View style={{
+            alignItems: 'flex-start',
+            marginBottom: 60,
+          }}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={{
+                width: 99,
+                height: 18,
+                resizeMode: 'contain',
+              }}
+            />
+          </View>
+
           {/* Header */}
-          <View style={styles.header}>
-            <ThemedText style={styles.headerText}>
-              {showForgotPassword ? "Reset Password" : "Join the Glow-Up Gang!"}{" "}
-              ✨
+          <View style={{
+            marginBottom: 24,
+          }}>
+            <ThemedText style={{
+              fontSize: 28,
+              fontWeight: '700',
+              color: '#1B1B1B',
+              lineHeight: 36,
+              marginBottom: 6,
+            }}>
+              Join the Glow Up Gang
             </ThemedText>
-            <ThemedText style={styles.subHeaderText}>
-              {showForgotPassword
-                ? "Enter your email to receive a password reset link."
-                : "Sign up or log in to start your money journey."}
+            <ThemedText style={{
+              fontSize: 14,
+              fontWeight: '400',
+              color: '#848484',
+              lineHeight: 20,
+            }}>
+              Sign up or log in to start your money journey.
             </ThemedText>
           </View>
 
-          {/* Auth Form */}
-          <ThemedView style={styles.formContainer}>
-            {!showForgotPassword && (
-              <>
-                {/* Toggle */}
-                <View style={styles.toggleContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.toggleButton,
-                      !isLogin && styles.toggleButtonActive,
-                    ]}
-                    onPress={() => setIsLogin(false)}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.toggleText,
-                        !isLogin && styles.toggleTextActive,
-                      ]}
-                    >
-                      Sign Up
-                    </ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.toggleButton,
-                      isLogin && styles.toggleButtonActive,
-                    ]}
-                    onPress={() => setIsLogin(true)}
-                  >
-                    <ThemedText
-                      style={[
-                        styles.toggleText,
-                        isLogin && styles.toggleTextActive,
-                      ]}
-                    >
-                      Log In
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
+          {/* Sign Up / Login Toggle */}
+          <View style={{
+            flexDirection: 'row',
+            backgroundColor: '#F8F9FA',
+            borderRadius: 55,
+            padding: 4,
+            marginBottom: 24,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.1,
+            shadowRadius: 2,
+            elevation: 2,
+          }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 55,
+                marginRight: 2,
+                backgroundColor: !isLogin ? AppColors.primary[300] : 'transparent',
+                shadowColor: !isLogin ? '#936DFF' : 'transparent',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: !isLogin ? 0.3 : 0,
+                shadowRadius: 4,
+                elevation: !isLogin ? 4 : 0,
+              }}
+              onPress={() => setIsLogin(false)}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: !isLogin ? '#FFFFFF' : '#848484',
+              }}>
+                Sign Up
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 55,
+                marginLeft: 2,
+                backgroundColor: isLogin ? AppColors.primary[300] : 'transparent',
+                shadowColor: isLogin ? '#936DFF' : 'transparent',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isLogin ? 0.3 : 0,
+                shadowRadius: 4,
+                elevation: isLogin ? 4 : 0,
+              }}
+              onPress={() => setIsLogin(true)}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: isLogin ? '#FFFFFF' : '#848484',
+              }}>
+                Login
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
 
-                {/* Name fields for signup only */}
-                {!isLogin && (
-                  <>
-                    <View style={styles.inputContainer}>
-                      <ThemedText style={styles.inputLabel}>
-                        First Name
-                      </ThemedText>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="Alex"
-                        placeholderTextColor="#666"
-                        value={firstName}
-                        onChangeText={setFirstName}
-                        autoCapitalize="words"
-                      />
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <ThemedText style={styles.inputLabel}>
-                        Last Name
-                      </ThemedText>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="Smith"
-                        placeholderTextColor="#666"
-                        value={lastName}
-                        onChangeText={setLastName}
-                        autoCapitalize="words"
-                      />
-                    </View>
-                  </>
-                )}
-              </>
-            )}
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <ThemedText style={styles.inputLabel}>Email</ThemedText>
+          {/* Form */}
+          <View style={{
+            flex: 1,
+          }}>
+            {/* Email */}
+            <View style={{
+              marginBottom: 16,
+            }}>
+              <ThemedText style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#1B1B1B',
+                marginBottom: 6,
+              }}>Email</ThemedText>
               <TextInput
-                style={styles.textInput}
-                placeholder="you@cool.com"
-                placeholderTextColor="#666"
+                style={{
+                  backgroundColor: '#F8F9FA',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  fontSize: 16,
+                  color: '#1B1B1B',
+                  borderWidth: 1,
+                  borderColor: '#E8E9EA',
+                }}
+                placeholder="Loisbecket@gmail.com"
+                placeholderTextColor="#999"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -337,271 +406,255 @@ export default function AuthPage() {
               />
             </View>
 
-            {/* Password Input */}
+            {/* Password */}
             {!showForgotPassword && (
-              <View style={styles.inputContainer}>
-                <ThemedText style={styles.inputLabel}>Password</ThemedText>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="Min 6 characters"
-                  placeholderTextColor="#666"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoCapitalize="none"
-                />
+              <View style={{
+                marginBottom: 16,
+              }}>
+                <ThemedText style={{
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: '#1B1B1B',
+                  marginBottom: 6,
+                }}>Password</ThemedText>
+                <View style={{
+                  position: 'relative',
+                }}>
+                  <TextInput
+                    style={{
+                      backgroundColor: '#F8F9FA',
+                      borderRadius: 12,
+                      paddingHorizontal: 16,
+                      paddingVertical: 14,
+                      paddingRight: 50,
+                      fontSize: 16,
+                      color: '#1B1B1B',
+                      borderWidth: 1,
+                      borderColor: '#E8E9EA',
+                    }}
+                    placeholder="*******"
+                    placeholderTextColor="#999"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCapitalize="none"
+                  />
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      right: 16,
+                      top: 14,
+                      bottom: 14,
+                      justifyContent: 'center',
+                    }}
+                    onPress={() => setShowPassword(!showPassword)}
+                  >
+                    <Image
+                      source={showPassword ? require('@/assets/images/hidePassword.png') : require('@/assets/images/showPassword.png')}
+                      style={{ width: 20, height: 20 }}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
-            {/* Forgot Password Link */}
-            {isLogin && !showForgotPassword && (
-              <TouchableOpacity
-                onPress={() => setShowForgotPassword(true)}
-                style={styles.forgotPasswordLink}
-              >
-                <ThemedText style={styles.forgotPasswordText}>
-                  Forgot your password?
-                </ThemedText>
-              </TouchableOpacity>
-            )}
+            {/* Forgot Password - Always render to maintain consistent spacing */}
+            <View style={{
+              marginBottom: 16,
+              opacity: (isLogin && !showForgotPassword) ? 1 : 0,
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+              }}>
+                <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
+                  <ThemedText style={{
+                    fontSize: 14,
+                    color: '#936DFF',
+                    fontWeight: '500',
+                  }}>
+                    Forgot Password ?
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
 
             {/* Back to Login Link */}
             {showForgotPassword && (
               <TouchableOpacity
                 onPress={() => setShowForgotPassword(false)}
-                style={styles.forgotPasswordLink}
+                style={{
+                  alignItems: 'flex-end',
+                  marginBottom: 24,
+                }}
               >
-                <ThemedText style={styles.forgotPasswordText}>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: '#936DFF',
+                  fontWeight: '500',
+                }}>
                   Back to Sign In
                 </ThemedText>
               </TouchableOpacity>
             )}
 
-            {/* Email Auth Button */}
+            {/* Login/Signup Button */}
             <TouchableOpacity
-              style={[
-                styles.authButton,
-                isLoading && styles.authButtonDisabled,
-              ]}
+              style={{
+                backgroundColor: AppColors.primary[300],
+                borderRadius: 32,
+                paddingVertical: 14,
+                alignItems: 'center',
+                marginBottom: 24,
+                shadowColor: 'rgba(147, 109, 255, 0.3)',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 1,
+                shadowRadius: 8,
+                elevation: 4,
+                opacity: isLoading ? 0.6 : 1,
+              }}
               onPress={handleAuth}
               disabled={isLoading}
             >
-              <LinearGradient
-                colors={["#00FF7F", "#32CD32"]}
-                style={styles.authButtonGradient}
-              >
-                <ThemedText style={styles.authButtonText}>
-                  {isLoading
-                    ? "Loading..."
-                    : showForgotPassword
-                    ? "Send Reset Email"
-                    : isLogin
-                    ? "Log In"
-                    : "Sign Up"}
-                </ThemedText>
-              </LinearGradient>
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: AppColors.gray[0],
+              }}>
+                {isLoading
+                  ? "Loading..."
+                  : showForgotPassword
+                  ? "Send Reset Email"
+                  : isLogin
+                  ? "Login"
+                  : "Sign Up"}
+              </ThemedText>
             </TouchableOpacity>
 
             {!showForgotPassword && (
               <>
                 {/* Divider */}
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <ThemedText style={styles.dividerText}>OR</ThemedText>
-                  <View style={styles.dividerLine} />
+                <View style={{
+                  alignItems: 'center',
+                  marginBottom: 20,
+                }}>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}>
+                    <View style={{
+                      flex: 1,
+                      height: 1,
+                      backgroundColor: '#E8E9EA',
+                    }} />
+                    <ThemedText style={{
+                      fontSize: 14,
+                      color: '#848484',
+                      fontWeight: '400',
+                      marginHorizontal: 16,
+                    }}>
+                      {isLogin ? 'Login with' : 'Sign up with'}
+                    </ThemedText>
+                    <View style={{
+                      flex: 1,
+                      height: 1,
+                      backgroundColor: '#E8E9EA',
+                    }} />
+                  </View>
                 </View>
 
-                {/* Google Sign-In */}
+                {/* Google Button */}
                 <TouchableOpacity
-                  style={[
-                    styles.googleButton,
-                    isLoading && styles.googleButtonDisabled,
-                  ]}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 32,
+                    borderWidth: 1,
+                    borderColor: '#E8E9EA',
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    marginBottom: 24,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                    elevation: 2,
+                    opacity: isLoading ? 0.6 : 1,
+                  }}
                   onPress={handleGoogleAuth}
                   disabled={isLoading}
                 >
-                  <View style={styles.googleButtonContent}>
-                    <ThemedText style={styles.googleIcon}>🔍</ThemedText>
-                    <ThemedText style={styles.googleButtonText}>
-                      Continue with Google
-                    </ThemedText>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                    <Image
+                      source={require('@/assets/images/google.png')}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        marginRight: 12,
+                      }}
+                    />
+                    <ThemedText style={{
+                      fontSize: 16,
+                      fontWeight: '500',
+                      color: '#1B1B1B',
+                    }}>Google</ThemedText>
                   </View>
                 </TouchableOpacity>
 
-                {/* Microcopy */}
-                <ThemedText style={styles.microcopy}>
-                  Let's make your wallet pop! 💸
-                </ThemedText>
+   
               </>
             )}
-          </ThemedView>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Development Navigation */}
+      <View style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#f0f0f0',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.back()}
+        >
+          <ThemedText style={{ color: '#666', fontSize: 12 }}>← Back</ThemedText>
+        </TouchableOpacity>
+        
+        <View style={{
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 12,
+        }}>
+          <ThemedText style={{ fontSize: 12, color: '#666' }}>2/5</ThemedText>
         </View>
-      </ScrollView>
-    </LinearGradient>
+        
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#936DFF',
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.push('/onboarding/profile')}
+        >
+          <ThemedText style={{ color: 'white', fontSize: 12 }}>Next →</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 40,
-  },
-  headerText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  subHeaderText: {
-    fontSize: 16,
-    color: "#CCCCCC",
-    textAlign: "center",
-  },
-  formContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.2)",
-  },
-  toggleContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 24,
-  },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  toggleButtonActive: {
-    backgroundColor: "#00FF7F",
-  },
-  toggleText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#CCCCCC",
-  },
-  toggleTextActive: {
-    color: "#000000",
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: "#000000",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-  forgotPasswordLink: {
-    alignSelf: "flex-end",
-    marginBottom: 20,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: "#00FF7F",
-    fontWeight: "500",
-  },
-  authButton: {
-    borderRadius: 16,
-    marginTop: 8,
-    shadowColor: "#00FF7F",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  authButtonDisabled: {
-    opacity: 0.6,
-  },
-  authButtonGradient: {
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  authButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000000",
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    color: "#CCCCCC",
-    fontWeight: "600",
-  },
-  googleButton: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  googleButtonDisabled: {
-    opacity: 0.6,
-  },
-  googleButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-  },
-  googleIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
-  },
-  microcopy: {
-    fontSize: 14,
-    color: "#00FF7F",
-    textAlign: "center",
-    marginTop: 20,
-    fontWeight: "500",
-  },
-});

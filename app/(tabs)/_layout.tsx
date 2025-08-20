@@ -1,16 +1,13 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform, TouchableOpacity, Alert } from "react-native";
+import { TouchableOpacity, Alert, View, StatusBar } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
+import CustomTabBar from "@/components/CustomTabBar";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { AppColors } from "@/constants/Colors";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const { resetOnboarding } = useOnboarding();
 
   const handleResetOnboarding = () => {
@@ -40,82 +37,52 @@ export default function TabLayout() {
   };
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: "absolute",
-          },
-          default: {},
-        }),
-      }}
-    >
+    <View style={{ flex: 1, backgroundColor: AppColors.gray[0] }}>
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor={AppColors.gray[0]}
+        translucent={false}
+      />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarButton: HapticTab,
+        }}
+        tabBar={(props) => <CustomTabBar {...props} />}
+      >
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: "Goals",
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Chat",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="message.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: "Community",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="person.3.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="invest"
-        options={{
-          title: "Invest",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={28}
-              name="chart.line.uptrend.xyaxis"
-              color={color}
-            />
-          ),
+          title: "Budget",
         }}
       />
       <Tabs.Screen
         name="portfolio"
         options={{
-          title: "Portfolio",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="briefcase.fill" color={color} />
-          ),
+          title: "Insights",
         }}
       />
-      {/* Debug option - remove in production */}
-      <Tabs.Screen
-        name="debug"
+      {/* <Tabs.Screen
+        name="learn"
         options={{
-          title: "🔧",
-          tabBarIcon: ({ color }) => (
-            <TouchableOpacity onPress={handleResetOnboarding}>
-              <IconSymbol size={28} name="gear" color={color} />
-            </TouchableOpacity>
-          ),
+          title: "Learn",
         }}
-      />
-    </Tabs>
+      /> */}
+      </Tabs>
+    </View>
+
   );
 }

@@ -9,6 +9,7 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { useAuth } from "@/hooks/useAuth";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
@@ -17,23 +18,35 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { isOnboardingCompleted, isLoading } = useOnboarding();
+  const { isOnboardingCompleted, isLoading: onboardingLoading } = useOnboarding();
+  const { isAuthenticated, isOnboardingCompleted: dbOnboardingCompleted, loading: authLoading } = useAuth();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
   useEffect(() => {
-    if (loaded && !isLoading) {
+    if (loaded && !onboardingLoading && !authLoading) {
       SplashScreen.hideAsync();
 
-      // Redirect to onboarding if not completed
+      // If user is authenticated, check database onboarding status
+      if (isAuthenticated) {
+        if (dbOnboardingCompleted) {
+          // User has completed onboarding in database, go to main app
+          router.replace("/(tabs)" as any);
+        } else {
+          // User is authenticated but hasn't completed onboarding
+          router.replace("/onboarding/profile" as any);
+        }
+      } else {
+        // User is not authenticated, check local onboarding status
       if (!isOnboardingCompleted) {
         router.replace("/onboarding/welcome" as any);
       }
     }
-  }, [loaded, isLoading, isOnboardingCompleted]);
+    }
+  }, [loaded, onboardingLoading, authLoading, isAuthenticated, dbOnboardingCompleted, isOnboardingCompleted]);
 
-  if (!loaded || isLoading) {
+  if (!loaded || onboardingLoading || authLoading) {
     return (
       <ThemedView style={styles.loadingContainer}>
         <ThemedText style={styles.loadingText}>Loading...</ThemedText>

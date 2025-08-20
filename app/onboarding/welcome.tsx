@@ -1,286 +1,171 @@
 import React, { useEffect, useRef } from "react";
 import {
   View,
-  StyleSheet,
   Animated,
   TouchableOpacity,
   Dimensions,
   ScrollView,
+  StatusBar,
+  Image,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { useAuth } from "@/hooks/useAuth";
+import { AppColors } from "@/constants/Colors";
 
 const { width, height } = Dimensions.get("window");
 
 export default function WelcomePage() {
-  const bounceAnimation = useRef(new Animated.Value(0)).current;
-  const scaleAnimation = useRef(new Animated.Value(0.8)).current;
-  const fadeAnimation = useRef(new Animated.Value(0)).current;
+  const { checkCurrentSession, user, isAuthenticated } = useAuth();
 
-  useEffect(() => {
-    // Entrance animation
-    Animated.parallel([
-      Animated.timing(fadeAnimation, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnimation, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Bouncing coin animation
-    const createBounceAnimation = () => {
-      return Animated.sequence([
-        Animated.timing(bounceAnimation, {
-          toValue: -20,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(bounceAnimation, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-      ]);
-    };
-
-    const loopBounce = () => {
-      createBounceAnimation().start(() => {
-        setTimeout(loopBounce, 1000); // Wait 1 second before next bounce
-      });
-    };
-
-    // Start bounce animation after entrance
-    setTimeout(loopBounce, 1000);
-  }, []);
 
   const handleGetStarted = () => {
     router.push("/onboarding/auth");
   };
 
   return (
-    <LinearGradient
-      colors={["#00FF7F", "#32CD32", "#00FF7F"]} // Neon green gradient
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Animated.View
-          style={[
-            styles.content,
-            {
-              opacity: fadeAnimation,
-              transform: [{ scale: scaleAnimation }],
-            },
-          ]}
-        >
+    <ThemedView style={{
+      flex: 1,
+      backgroundColor: AppColors.gray[0],
+    }}>
+      <StatusBar barStyle="dark-content" backgroundColor={AppColors.gray[0]} />
+      
+      <ScrollView 
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: 80,
+          paddingBottom: 100,
+          paddingHorizontal: 24,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+
           {/* Logo Area */}
-          <View style={styles.logoContainer}>
-            <Animated.View
-              style={[
-                styles.coinContainer,
-                {
-                  transform: [{ translateY: bounceAnimation }],
-                },
-              ]}
-            >
-              <View style={styles.coin}>
-                <ThemedText style={styles.coinText}>💰</ThemedText>
-              </View>
-            </Animated.View>
-
-            <ThemedText style={styles.logoText}>YouBroke</ThemedText>
-            <View style={styles.sparkles}>
-              <ThemedText style={styles.sparkle}>✨</ThemedText>
-              <ThemedText style={styles.sparkle}>💅</ThemedText>
-              <ThemedText style={styles.sparkle}>✨</ThemedText>
-            </View>
+          <View style={{
+            alignItems: 'center',
+            marginTop: 20,
+          }}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={{
+                width: 99,
+                height: 18,
+                resizeMode: 'contain',
+              }}
+            />
           </View>
 
-          {/* Main Content */}
-          <View style={styles.textContainer}>
-            <ThemedText style={styles.header}>
-              Welcome to YouBroke! 💅
+          {/* Illustration Area */}
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginVertical: 20,
+          }}>
+            {/* Simple Empty Square */}
+            <View style={{
+              width: 250,
+              height: 250,
+              backgroundColor: '#F4F7FA',
+              borderRadius: 16,
+            }} />
+          </View>
+
+          {/* Text Content */}
+          <View style={{
+            alignItems: 'center',
+            paddingHorizontal: 24,
+            marginBottom: 20,
+          }}>
+            <ThemedText style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: AppColors.gray[500],
+              textAlign: 'center',
+              marginBottom: 16,
+            }}>
+              Welcome to UBroke
             </ThemedText>
 
-            <ThemedText style={styles.subtext}>
-              Broke but make it chic! Let's get your money glowing in just a few
-              steps. Ready to slay your finances? 🚀
+            <ThemedText style={{
+              fontSize: 14,
+              color: AppColors.gray[400],
+              textAlign: 'center',
+              fontFamily: 'Geist',
+              fontStyle: 'normal',
+              fontWeight: '400',
+              lineHeight: 21,
+              letterSpacing: -0.266,
+              paddingHorizontal: 20,
+            }}>
+              Broke but make it chic! Let's get your money glowing in just a few steps. Ready to slay your finances? 🚀
             </ThemedText>
           </View>
 
-          {/* Action Button */}
+          {/* Get Started Button */}
           <TouchableOpacity
-            style={styles.getStartedButton}
+            style={{
+              borderRadius: 32,
+              paddingVertical: 16,
+              paddingHorizontal: 48,
+              minWidth: width - 48,
+              minHeight: 56,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: AppColors.primary[300],
+              shadowColor: AppColors.primary[300],
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
             onPress={handleGetStarted}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={["#FF69B4", "#FF1493", "#FF69B4"]} // Hot pink gradient
-              style={styles.buttonGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <ThemedText style={styles.buttonText}>Get Started</ThemedText>
-            </LinearGradient>
+            <ThemedText style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: AppColors.gray[0],
+              textAlign: 'center',
+            }}>Get Started</ThemedText>
           </TouchableOpacity>
-
-          {/* Decorative Elements */}
-          <View style={styles.decorativeElements}>
-            <ThemedText style={[styles.floatingEmoji, styles.emoji1]}>
-              💸
-            </ThemedText>
-            <ThemedText style={[styles.floatingEmoji, styles.emoji2]}>
-              🚀
-            </ThemedText>
-            <ThemedText style={[styles.floatingEmoji, styles.emoji3]}>
-              ✨
-            </ThemedText>
-            <ThemedText style={[styles.floatingEmoji, styles.emoji4]}>
-              💎
-            </ThemedText>
-          </View>
-        </Animated.View>
+  
       </ScrollView>
-    </LinearGradient>
+
+      {/* Development Navigation */}
+      <View style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        right: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <View style={{ width: 60 }} />
+        
+        <View style={{
+          backgroundColor: 'rgba(0,0,0,0.1)',
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 12,
+        }}>
+          <ThemedText style={{ fontSize: 12, color: '#666' }}>1/5</ThemedText>
+        </View>
+        
+        <TouchableOpacity
+          style={{
+            backgroundColor: AppColors.primary[300],
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+          }}
+          onPress={() => router.push('/onboarding/auth')}
+        >
+          <ThemedText style={{ color: 'white', fontSize: 12 }}>Next →</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingTop: 60,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  logoContainer: {
-    alignItems: "center",
-    marginTop: 40,
-  },
-  coinContainer: {
-    marginBottom: 20,
-  },
-  coin: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#FFFF00", // Yellow background
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  coinText: {
-    fontSize: 40,
-  },
-  logoText: {
-    fontSize: 48,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textShadowColor: "#000",
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-    marginBottom: 8,
-  },
-  sparkles: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  sparkle: {
-    fontSize: 24,
-  },
-  textContainer: {
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
-  header: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginBottom: 20,
-    textShadowColor: "#000",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  subtext: {
-    fontSize: 18,
-    color: "#FFFFFF",
-    textAlign: "center",
-    lineHeight: 26,
-    fontWeight: "500",
-    textShadowColor: "#000",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  getStartedButton: {
-    borderRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  buttonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 48,
-    borderRadius: 24,
-    minWidth: 200,
-    minHeight: 48, // 48px tap area as requested
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    textAlign: "center",
-  },
-  decorativeElements: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: "none",
-  },
-  floatingEmoji: {
-    position: "absolute",
-    fontSize: 24,
-    opacity: 0.7,
-  },
-  emoji1: {
-    top: "15%",
-    left: "10%",
-  },
-  emoji2: {
-    top: "25%",
-    right: "15%",
-  },
-  emoji3: {
-    bottom: "30%",
-    left: "15%",
-  },
-  emoji4: {
-    bottom: "20%",
-    right: "20%",
-  },
-});
