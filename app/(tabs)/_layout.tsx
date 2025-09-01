@@ -37,15 +37,22 @@ export default function TabLayout() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: AppColors.gray[0] }}>
+    <View style={{ flex: 1, backgroundColor: "transparent" }}>
       <StatusBar 
         barStyle="dark-content" 
-        backgroundColor={AppColors.gray[0]}
+        backgroundColor="transparent"
         translucent={false}
       />
       <Tabs
         screenOptions={{
           headerShown: false,
+          tabBarStyle: {
+            backgroundColor: 'transparent', // Make default tab bar transparent
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
+            position: 'absolute', // Ensure it floats above content
+          },
           tabBarButton: HapticTab,
         }}
         tabBar={(props) => <CustomTabBar {...props} />}
@@ -83,6 +90,5 @@ export default function TabLayout() {
       /> */}
       </Tabs>
     </View>
-
   );
 }

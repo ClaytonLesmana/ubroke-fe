@@ -4,22 +4,36 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { AppColors } from "@/constants/Colors";
 import { Image } from "expo-image";
+import { Icon } from "@/components/Icon";
 
 // Import all the new components
 import { JourneyCard } from "@/components/home/JourneyCard";
-import { SpendingCategoryCard } from "@/components/home/SpendingCategoryCard";
-import { CashflowCard } from "@/components/home/CashflowCard";
+import { CombinedCard } from "@/components/home/CombinedCard";
 import { BudgetCard } from "@/components/home/BudgetCard";
 import { BillsCard } from "@/components/home/BillsCard";
 import { GoalsCard } from "@/components/home/GoalsCard";
 import { PaydayCard } from "@/components/home/PaydayCard";
 
 export default function HomePage() {
-  // Dummy data for all components
+  // Example of how backend data would look:
+  // const backendSpendingData = [
+  //   { categoryId: "food", name: "Food & Dining", amount: 423.50, color: "#EF4444", transactions: 15 },
+  //   { categoryId: "transport", name: "Transportation", amount: 287.25, color: "#10B981", transactions: 8 },
+  //   { categoryId: "housing", name: "Housing & Rent", amount: 1200.00, color: "#8B5CF6", transactions: 1 },
+  //   { categoryId: "entertainment", name: "Entertainment", amount: 156.75, color: "#F59E0B", transactions: 12 },
+  //   { categoryId: "shopping", name: "Shopping", amount: 89.30, color: "#EF4444", transactions: 6 },
+  //   { categoryId: "healthcare", name: "Healthcare", amount: 45.20, color: "#06B6D4", transactions: 2 },
+  //   { categoryId: "utilities", name: "Utilities", amount: 78.90, color: "#84CC16", transactions: 3 },
+  // ];
+
+  // Dummy data for all components (simulating backend response)
   const spendingCategories = [
-    { name: "Food", amount: 213, color: "#EF4444" },
-    { name: "Fun", amount: 160, color: "#10B981" },
-    { name: "Rent", amount: 1200, color: AppColors.primary[300] },
+    { name: "Food & Dining", amount: 423.50, color: "#EF4444" },
+    { name: "Transportation", amount: 287.25, color: "#10B981" },
+    { name: "Housing & Rent", amount: 1200.00, color: AppColors.primary[300] },
+    { name: "Entertainment", amount: 156.75, color: "#F59E0B" },
+    { name: "Shopping", amount: 89.30, color: "#8B5CF6" },
+    { name: "Healthcare", amount: 45.20, color: "#06B6D4" },
   ];
 
   const cashflowData = {
@@ -28,12 +42,61 @@ export default function HomePage() {
     left: 800,
   };
 
-  const budgetItem = {
-    name: "Groceries",
-    spent: 66,
-    budget: 150,
-    icon: "🛒",
-  };
+  const budgetGroups = [
+    {
+      frequency: 'weekly' as const,
+      daysLeft: 3,
+      budgets: [
+        {
+          name: "Groceries",
+          spent: 66,
+          budget: 150,
+          icon: "🛒",
+          frequency: 'weekly' as const,
+        },
+        {
+          name: "Transport",
+          spent: 25,
+          budget: 50,
+          icon: "🚗",
+          frequency: 'weekly' as const,
+        },
+      ],
+    },
+    {
+      frequency: 'fortnightly' as const,
+      daysLeft: 8,
+      budgets: [
+        {
+          name: "Entertainment",
+          spent: 120,
+          budget: 200,
+          icon: "🎬",
+          frequency: 'fortnightly' as const,
+        },
+      ],
+    },
+    {
+      frequency: 'monthly' as const,
+      daysLeft: 15,
+      budgets: [
+        {
+          name: "Shopping",
+          spent: 300,
+          budget: 500,
+          icon: "🛍️",
+          frequency: 'monthly' as const,
+        },
+        {
+          name: "Utilities",
+          spent: 150,
+          budget: 200,
+          icon: "⚡",
+          frequency: 'monthly' as const,
+        },
+      ],
+    },
+  ];
 
   const bills = [
     { name: "Netflix", dueDate: "Oct 20", amount: 15 },
@@ -70,6 +133,11 @@ export default function HomePage() {
 
   return (
     <ThemedView style={styles.container}>
+      <Image 
+        source={require('@/assets/images/chatBackground.png')} 
+        style={styles.backgroundImage}
+        contentFit="cover"
+      />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -153,10 +221,11 @@ export default function HomePage() {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
-                <Image source={require('@/assets/images/notification.png')} style={{
-                  width: 16,
-                  height: 18,
-                }} />
+                <Icon
+                  name="notificationIcon"
+                  size={16}
+                  color={AppColors.gray[500]}
+                />
                 <View style={{
                   position: 'absolute',
                   top: -2,
@@ -179,34 +248,37 @@ export default function HomePage() {
               }}
               onPress={() => Alert.alert("Settings", "Open settings")}
             >
-              <Image source={require('@/assets/images/settings.png')} style={{
-                width: 18,
-                height: 18,
-              }} />
+              <Icon
+                name="settingsIcon"
+                size={18}
+                color={AppColors.gray[500]}
+              />
             </TouchableOpacity>
           </View>
         </View>
 
         <JourneyCard 
-          currentAmount={66000}
+          currentAmount={700000}
           targetAmount={1000000}
           onViewAnalytics={handleViewAnalytics}
         />
 
-        <SpendingCategoryCard 
-          categories={spendingCategories}
+        <CombinedCard 
+          spendingCategories={spendingCategories}
+          cashflowData={cashflowData}
+          selectedMonth="August"
+          selectedYear="2025"
+          transactionCount={5}
+          onMonthChange={(month, year) => {
+            console.log(`Month changed to ${month} ${year}`);
+            // Here you would typically fetch new data for the selected month
+          }}
           onTapToDigDeeper={handleTapToDigDeeper}
-        />
-
-        <CashflowCard 
-          data={cashflowData}
-          onSeeDetails={() => Alert.alert("Cashflow Details", "Navigate to cashflow details")}
+          onSeeCashflowDetails={() => Alert.alert("Cashflow Details", "Navigate to cashflow details")}
         />
 
         <BudgetCard 
-          daysLeft={4}
-          title="Million fortnight's budgety!"
-          budgetItem={budgetItem}
+          budgetGroups={budgetGroups}
           onViewBudget={handleViewBudget}
         />
 
@@ -236,6 +308,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.primary[100],
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
   scrollView: {
     flex: 1,

@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
 } from "react-native";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -232,18 +233,11 @@ export default function IncomePage() {
                 }}>
                   {payFrequency}
                 </ThemedText>
-                <View style={{
-                  width: 0,
-                  height: 0,
-                  backgroundColor: 'transparent',
-                  borderStyle: 'solid',
-                  borderLeftWidth: 6,
-                  borderRightWidth: 6,
-                  borderTopWidth: 8,
-                  borderLeftColor: 'transparent',
-                  borderRightColor: 'transparent',
-                  borderTopColor: AppColors.gray[300],
-                }} />
+                <Icon
+                  name="downIcon"
+                  size={16}
+                  color={AppColors.gray[300]}
+                />
               </View>
             </View>
 
@@ -274,12 +268,11 @@ export default function IncomePage() {
                 }}>
                   {nextPayDate}
                 </ThemedText>
-                <View style={{
-                  width: 20,
-                  height: 20,
-                  backgroundColor: AppColors.gray[300],
-                  borderRadius: 4,
-                }} />
+                <Icon
+                  name="calendarIcon"
+                  size={20}
+                  color={AppColors.gray[300]}
+                />
               </View>
             </View>
 

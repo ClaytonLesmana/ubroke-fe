@@ -8,6 +8,7 @@ import {
   Image,
   SafeAreaView,
 } from "react-native";
+import { Icon } from "@/components/Icon";
 import { router } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -449,9 +450,10 @@ export default function AuthPage() {
                     }}
                     onPress={() => setShowPassword(!showPassword)}
                   >
-                    <Image
-                      source={showPassword ? require('@/assets/images/hidePassword.png') : require('@/assets/images/showPassword.png')}
-                      style={{ width: 20, height: 20 }}
+                    <Icon
+                      name={showPassword ? "passwordHiddenIcon" : "passwordIcon"}
+                      size={20}
+                      color={AppColors.gray[400]}
                     />
                   </TouchableOpacity>
                 </View>
@@ -589,14 +591,12 @@ export default function AuthPage() {
                     flexDirection: 'row',
                     alignItems: 'center',
                   }}>
-                    <Image
-                      source={require('@/assets/images/google.png')}
-                      style={{
-                        width: 20,
-                        height: 20,
-                        marginRight: 12,
-                      }}
-                    />
+                    <View style={{ marginRight: 12 }}>
+                      <Icon
+                        name="googleIcon"
+                        size={20}
+                      />
+                    </View>
                     <ThemedText style={{
                       fontSize: 16,
                       fontWeight: '500',

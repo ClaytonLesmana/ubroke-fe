@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
 
@@ -31,96 +31,88 @@ export function CashflowCard({ data, onSeeDetails }: CashflowCardProps) {
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>This Month Cashflow</ThemedText>
-        <ThemedText style={styles.trendIcon}>📈</ThemedText>
+    <View style={{
+      backgroundColor: AppColors.gray[0],
+      borderRadius: 24,
+      padding: 20,
+      paddingTop: 105,
+      marginHorizontal: -8,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 6,
+      elevation: 3,
+    }}>
+      {/* Header removed per previous change */}
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'flex-end',
+        height: 100,
+        marginBottom: 12,
+      }}>
+        <View style={{ alignItems: 'center', flex: 1 }}>
+          <View style={{
+            width: 40,
+            height: getBarHeight(data.income),
+            borderRadius: 4,
+            marginBottom: 4,
+            backgroundColor: AppColors.primary[300],
+          }} />
+          <ThemedText style={{
+            fontSize: 12,
+            fontWeight: '600',
+            color: AppColors.gray[500],
+            marginBottom: 2,
+          }}>
+            {formatCurrency(data.income)}
+          </ThemedText>
+          <ThemedText style={{ fontSize: 10, color: AppColors.gray[400] }}>Income</ThemedText>
+        </View>
+
+        <View style={{ alignItems: 'center', flex: 1 }}>
+          <View style={{
+            width: 40,
+            height: getBarHeight(data.expenses),
+            borderRadius: 4,
+            marginBottom: 4,
+            backgroundColor: AppColors.primary[300],
+          }} />
+          <ThemedText style={{
+            fontSize: 12,
+            fontWeight: '600',
+            color: AppColors.gray[500],
+            marginBottom: 2,
+          }}>
+            {formatCurrency(data.expenses)}
+          </ThemedText>
+          <ThemedText style={{ fontSize: 10, color: AppColors.gray[400] }}>Expenses</ThemedText>
+        </View>
+
+        <View style={{ alignItems: 'center', flex: 1 }}>
+          <View style={{
+            width: 40,
+            height: getBarHeight(data.left),
+            borderRadius: 4,
+            marginBottom: 4,
+            backgroundColor: AppColors.primary[300],
+          }} />
+          <ThemedText style={{
+            fontSize: 12,
+            fontWeight: '600',
+            color: AppColors.gray[500],
+            marginBottom: 2,
+          }}>
+            {formatCurrency(data.left)}
+          </ThemedText>
+          <ThemedText style={{ fontSize: 10, color: AppColors.gray[400] }}>Left</ThemedText>
+        </View>
       </View>
-      <View style={styles.cashflowChart}>
-        <View style={styles.cashflowBar}>
-          <View style={[styles.bar, { height: getBarHeight(data.income), backgroundColor: AppColors.primary[300] }]} />
-          <ThemedText style={styles.barLabel}>{formatCurrency(data.income)}</ThemedText>
-          <ThemedText style={styles.barTitle}>Income</ThemedText>
-        </View>
-        <View style={styles.cashflowBar}>
-          <View style={[styles.bar, { height: getBarHeight(data.expenses), backgroundColor: AppColors.primary[300] }]} />
-          <ThemedText style={styles.barLabel}>{formatCurrency(data.expenses)}</ThemedText>
-          <ThemedText style={styles.barTitle}>Expenses</ThemedText>
-        </View>
-        <View style={styles.cashflowBar}>
-          <View style={[styles.bar, { height: getBarHeight(data.left), backgroundColor: AppColors.primary[300] }]} />
-          <ThemedText style={styles.barLabel}>{formatCurrency(data.left)}</ThemedText>
-          <ThemedText style={styles.barTitle}>Left</ThemedText>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.linkButton} onPress={onSeeDetails}>
-        <ThemedText style={styles.linkText}>See details {'>'}</ThemedText>
+
+      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} onPress={onSeeDetails}>
+        <ThemedText style={{ fontSize: 14, color: AppColors.primary[300], fontWeight: '500' }}>See details {'>'}</ThemedText>
       </TouchableOpacity>
     </View>
   );
-}
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: AppColors.gray[0],
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: AppColors.gray[500],
-  },
-  trendIcon: {
-    fontSize: 16,
-  },
-  cashflowChart: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 100,
-    marginBottom: 12,
-  },
-  cashflowBar: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  bar: {
-    width: 40,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  barLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: AppColors.gray[500],
-    marginBottom: 2,
-  },
-  barTitle: {
-    fontSize: 10,
-    color: AppColors.gray[400],
-  },
-  linkButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  linkText: {
-    fontSize: 14,
-    color: AppColors.primary[300],
-    fontWeight: '500',
-  },
-}); 
+} 

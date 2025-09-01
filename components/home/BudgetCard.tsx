@@ -1,31 +1,33 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, TouchableOpacity, Animated } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface BudgetItem {
   name: string;
   spent: number;
   budget: number;
   icon: string;
+  frequency: 'weekly' | 'fortnightly' | 'monthly';
+}
+
+interface BudgetGroup {
+  frequency: 'weekly' | 'fortnightly' | 'monthly';
+  budgets: BudgetItem[];
+  daysLeft: number;
 }
 
 interface BudgetCardProps {
-  daysLeft: number;
-  title: string;
-  budgetItem: BudgetItem;
+  budgetGroups: BudgetGroup[];
   onViewBudget?: () => void;
 }
 
 export function BudgetCard({ 
-  daysLeft, 
-  title, 
-  budgetItem, 
+  budgetGroups, 
   onViewBudget 
 }: BudgetCardProps) {
-  const progressPercentage = (budgetItem.spent / budgetItem.budget) * 100;
-  const remaining = budgetItem.budget - budgetItem.spent;
-
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -35,131 +37,203 @@ export function BudgetCard({
     }).format(amount);
   };
 
-  return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <ThemedText style={styles.cardTitle}>Budget</ThemedText>
-        <ThemedText style={styles.budgetCount}>1 active budget</ThemedText>
-      </View>
-      <View style={styles.budgetContent}>
-        <ThemedText style={styles.budgetDays}>{daysLeft} Days</ThemedText>
-        <ThemedText style={styles.budgetTitle}>{title}</ThemedText>
-        <View style={styles.budgetItem}>
-          <View style={styles.budgetItemHeader}>
-            <ThemedText style={styles.budgetIcon}>{budgetItem.icon}</ThemedText>
-            <ThemedText style={styles.budgetItemName}>{budgetItem.name}</ThemedText>
-          </View>
-          <View style={styles.budgetProgress}>
-            <ThemedText style={styles.budgetSpent}>
-              {formatCurrency(budgetItem.spent)} spent of {formatCurrency(budgetItem.budget)}
-            </ThemedText>
-            <View style={styles.budgetProgressBar}>
-              <View style={[styles.budgetProgressFill, { width: `${progressPercentage}%` }]} />
+  const getFrequencyDisplayName = (frequency: string) => {
+    switch (frequency) {
+      case 'weekly': return 'Weekly';
+      case 'fortnightly': return 'Fortnightly';
+      case 'monthly': return 'Monthly';
+      default: return frequency;
+    }
+  };
+
+  const BudgetItemComponent = ({ budgetItem }: { budgetItem: BudgetItem }) => {
+    const progressPercentage = (budgetItem.spent / budgetItem.budget) * 100;
+    const remaining = budgetItem.budget - budgetItem.spent;
+    
+    // Animated progress bar
+    const animatedWidth = useRef(new Animated.Value(0)).current;
+    const gradientAnimation = useRef(new Animated.Value(0)).current;
+
+    // Animate progress bar on mount and when progress changes
+    useEffect(() => {
+      Animated.timing(animatedWidth, {
+        toValue: Math.min(Math.max(progressPercentage, 0), 100),
+        duration: 1500,
+        useNativeDriver: false,
+      }).start();
+    }, [progressPercentage, animatedWidth]);
+
+    // Animate gradient background continuously
+    useEffect(() => {
+      const animateGradient = () => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(gradientAnimation, {
+              toValue: 1,
+              duration: 3000,
+              useNativeDriver: false,
+            }),
+            Animated.timing(gradientAnimation, {
+              toValue: 0,
+              duration: 3000,
+              useNativeDriver: false,
+            }),
+          ])
+        ).start();
+      };
+      
+      animateGradient();
+    }, [gradientAnimation]);
+
+    return (
+              <View style={{
+          marginBottom: 16,
+          padding: 12,
+          // backgroundColor: AppColors.gray[100],
+          borderRadius: 12,
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+          }}>
+            <ThemedText style={{
+              fontSize: 16,
+            }}>{budgetItem.icon}</ThemedText>
+            
+            <View style={{
+              flex: 1,
+              height: 12,
+              backgroundColor: AppColors.gray[200],
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}>
+              <Animated.View style={{ 
+                width: animatedWidth.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%'],
+                }),
+                height: '100%',
+                overflow: 'hidden',
+                borderRadius: 2,
+              }}>
+                <Animated.View style={{
+                  width: '200%',
+                  height: '100%',
+                  transform: [{
+                    translateX: gradientAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, -100],
+                    })
+                  }]
+                }}>
+                  <LinearGradient
+                    colors={['#D9CCFF', '#936DFF', '#D9CCFF']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                    }}
+                  />
+                </Animated.View>
+              </Animated.View>
+            </View>
+            
+            <View style={{
+              alignItems: 'flex-end',
+              minWidth: 80,
+            }}>
+              <ThemedText style={{
+                fontSize: 12,
+                color: AppColors.gray[400],
+                fontWeight: '500',
+              }}>
+                {formatCurrency(budgetItem.spent)}/{formatCurrency(budgetItem.budget)}
+              </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.budgetRemaining}>
-            {formatCurrency(remaining)} Remaining
-          </ThemedText>
         </View>
+    );
+  };
+
+  return (
+    <View style={{
+      backgroundColor: AppColors.gray[0],
+      borderRadius: 16,
+      padding: 16,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    }}>
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+      }}>
+        <ThemedText style={{
+          fontSize: 18,
+          fontWeight: '600',
+          color: AppColors.gray[500],
+        }}>Budget</ThemedText>
+        {/* <ThemedText style={{
+          fontSize: 12,
+          color: AppColors.gray[400],
+        }}>{budgetGroups.reduce((total, group) => total + group.budgets.length, 0)} active budgets</ThemedText> */}
       </View>
-      <TouchableOpacity style={styles.purpleButton} onPress={onViewBudget}>
-        <ThemedText style={styles.purpleButtonText}>View Budget</ThemedText>
+      
+      {budgetGroups.map((group, groupIndex) => (
+        <View key={groupIndex} style={{
+          marginBottom: groupIndex < budgetGroups.length - 1 ? 20 : 0,
+        }}>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+          }}>
+            <ThemedText style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: AppColors.gray[500],
+            }}>
+              {getFrequencyDisplayName(group.frequency)}
+            </ThemedText>
+            <ThemedText style={{
+              fontSize: 12,
+              color: AppColors.gray[400],
+            }}>
+              {group.daysLeft} days left
+            </ThemedText>
+          </View>
+          
+          {group.budgets.map((budgetItem, itemIndex) => (
+            <BudgetItemComponent key={itemIndex} budgetItem={budgetItem} />
+          ))}
+        </View>
+      ))}
+      
+      <TouchableOpacity style={{
+        backgroundColor: AppColors.primary[300],
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 8,
+      }} onPress={onViewBudget}>
+        <ThemedText style={{
+          color: AppColors.gray[0],
+          fontSize: 14,
+          fontWeight: '600',
+        }}>Add Budget</ThemedText>
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: AppColors.gray[0],
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: AppColors.gray[500],
-  },
-  budgetCount: {
-    fontSize: 12,
-    color: AppColors.gray[400],
-  },
-  budgetContent: {
-    marginBottom: 16,
-  },
-  budgetDays: {
-    fontSize: 14,
-    color: AppColors.gray[400],
-    marginBottom: 4,
-  },
-  budgetTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.gray[500],
-    marginBottom: 12,
-  },
-  budgetItem: {
-    marginBottom: 12,
-  },
-  budgetItemHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  budgetIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  budgetItemName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: AppColors.gray[500],
-  },
-  budgetProgress: {
-    marginBottom: 8,
-  },
-  budgetSpent: {
-    fontSize: 12,
-    color: AppColors.gray[400],
-    marginBottom: 4,
-  },
-  budgetProgressBar: {
-    height: 6,
-    backgroundColor: AppColors.gray[200],
-    borderRadius: 3,
-  },
-  budgetProgressFill: {
-    height: '100%',
-    backgroundColor: AppColors.primary[300],
-    borderRadius: 3,
-  },
-  budgetRemaining: {
-    fontSize: 12,
-    color: AppColors.gray[400],
-  },
-  purpleButton: {
-    backgroundColor: AppColors.primary[300],
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  purpleButtonText: {
-    color: AppColors.gray[0],
-    fontSize: 14,
-    fontWeight: '600',
-  },
-}); 
+ 

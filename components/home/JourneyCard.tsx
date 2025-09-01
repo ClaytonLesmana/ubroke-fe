@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, TouchableOpacity, Animated } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface JourneyCardProps {
   currentAmount: number;
@@ -15,6 +16,9 @@ export function JourneyCard({
   onViewAnalytics 
 }: JourneyCardProps) {
   const progressPercentage = (currentAmount / targetAmount) * 100;
+  const animatedWidth = useRef(new Animated.Value(0)).current;
+  const gradientAnimation = useRef(new Animated.Value(0)).current;
+  
   const formattedCurrent = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -29,6 +33,37 @@ export function JourneyCard({
     maximumFractionDigits: 0,
   }).format(targetAmount);
 
+  // Animate progress bar on mount and when progress changes
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: Math.min(Math.max(progressPercentage, 0), 100),
+      duration: 1500,
+      useNativeDriver: false,
+    }).start();
+  }, [progressPercentage, animatedWidth]);
+
+  // Animate gradient background continuously
+  useEffect(() => {
+    const animateGradient = () => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(gradientAnimation, {
+            toValue: 1,
+            duration: 3000,
+            useNativeDriver: false,
+          }),
+          Animated.timing(gradientAnimation, {
+            toValue: 0,
+            duration: 3000,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+    
+    animateGradient();
+  }, [gradientAnimation]);
+
   // Progress fun message and colors
   const progressInfo = (() => {
     if (currentAmount < 100000) {
@@ -41,7 +76,7 @@ export function JourneyCard({
       return { message: 'Great progress.', bg: AppColors.primary[100], text: AppColors.primary[300] };
     }
     if (currentAmount < 1000000) {
-      return { message: 'Almost there!', bg: AppColors.primary[200], text: AppColors.primary[300] };
+      return { message: 'Almost there!', bg:  AppColors.primary[100], text: AppColors.primary[300] };
     }
     return { message: 'Goal reached!', bg: AppColors.primary[300], text: AppColors.gray[0] };
   })();
@@ -96,7 +131,7 @@ export function JourneyCard({
           </View>
         </View>
         
-        {/* Single continuous progress bar */}
+        {/* Animated progress bar with animated gradient background */}
         <View style={{
           width: '100%',
           height: 18,
@@ -105,11 +140,36 @@ export function JourneyCard({
           backgroundColor: AppColors.gray[200],
           overflow: 'hidden',
         }}>
-          <View style={{ 
-            width: `${Math.min(Math.max(progressPercentage, 0), 100)}%`, 
-            height: '100%', 
-            backgroundColor: AppColors.primary[300]
-          }} />
+          <Animated.View style={{ 
+            width: animatedWidth.interpolate({
+              inputRange: [0, 100],
+              outputRange: ['0%', '100%'],
+            }),
+            height: '100%',
+            overflow: 'hidden',
+            borderRadius: 5,
+          }}>
+            <Animated.View style={{
+              width: '200%',
+              height: '100%',
+              transform: [{
+                translateX: gradientAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, -100],
+                })
+              }]
+            }}>
+              <LinearGradient
+                colors={['#D9CCFF', '#936DFF', '#D9CCFF']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                }}
+              />
+            </Animated.View>
+          </Animated.View>
         </View>
         
         {/* Min/Max labels */}
