@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OnboardingData } from "@/components/onboarding/OnboardingContainer";
+import { OnboardingData } from "@/lib/supabase";
 
 const ONBOARDING_STORAGE_KEY = "@ubroke_onboarding_completed";
 const ONBOARDING_DATA_KEY = "@ubroke_onboarding_data";

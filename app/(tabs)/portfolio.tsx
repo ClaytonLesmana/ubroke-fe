@@ -1,203 +1,292 @@
 import React, { useState } from "react";
-import { StyleSheet, ScrollView, TouchableOpacity, View, Text, FlatList } from "react-native";
+import { TouchableOpacity, View } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { Icon } from "@/components/Icon";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
+import { Colors, AppColors } from "@/constants/Colors";
 import { useExpenses } from "@/hooks/useExpenses";
 import { AddTransactionModal } from "@/components/AddTransactionModal";
 import { TransactionUploadModal } from "@/components/TransactionUploadModal";
+import { TransactionView } from "@/components/portfolio/TransactionView";
+import { NetWorthView } from "@/components/portfolio/NetWorthView";
 
-type TabType = 'networth' | 'account' | 'transactions';
+type TransactionViewType = 'transaction' | 'networth';
 
 export default function PortfolioScreen() {
   const colorScheme = useColorScheme();
-  const [activeTab, setActiveTab] = useState<TabType>('networth');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const { transactions, accounts, netWorth, getSpendingByCategory, addTransaction } = useExpenses();
-
-  const renderTabButton = (tab: TabType, title: string) => (
-    <TouchableOpacity
-      style={[
-        styles.tabButton,
-        activeTab === tab && styles.activeTabButton,
-        { backgroundColor: activeTab === tab ? Colors[colorScheme ?? 'light'].tint : 'transparent' }
-      ]}
-      onPress={() => setActiveTab(tab)}
-    >
-      <ThemedText
-        style={[
-          styles.tabButtonText,
-          activeTab === tab && styles.activeTabButtonText
-        ]}
-      >
-        {title}
-      </ThemedText>
-    </TouchableOpacity>
-  );
-
-  const renderNetWorth = () => (
-    <ScrollView style={styles.content}>
-      <View style={styles.netWorthCard}>
-        <ThemedText type="title" style={styles.netWorthTitle}>
-          Net Worth
-        </ThemedText>
-        <ThemedText type="title" style={styles.netWorthAmount}>
-          ${netWorth.netWorth.toLocaleString()}
-        </ThemedText>
-        <View style={styles.netWorthChange}>
-          <ThemedText style={[styles.changeText, { color: netWorth.monthlyChange >= 0 ? '#4CAF50' : '#F44336' }]}>
-            {netWorth.monthlyChange >= 0 ? '+' : ''}${netWorth.monthlyChange.toLocaleString()} 
-            ({netWorth.monthlyChangePercent >= 0 ? '+' : ''}{netWorth.monthlyChangePercent.toFixed(1)}%)
-          </ThemedText>
-          <ThemedText style={styles.changeLabel}>This month</ThemedText>
-        </View>
-      </View>
-
-      <View style={styles.summaryCards}>
-        <View style={[styles.summaryCard, { backgroundColor: '#E8F5E8' }]}>
-          <ThemedText style={styles.summaryLabel}>Total Assets</ThemedText>
-          <ThemedText type="title" style={styles.summaryAmount}>
-            ${netWorth.totalAssets.toLocaleString()}
-          </ThemedText>
-        </View>
-        <View style={[styles.summaryCard, { backgroundColor: '#FFEBEE' }]}>
-          <ThemedText style={styles.summaryLabel}>Total Liabilities</ThemedText>
-          <ThemedText type="title" style={styles.summaryAmount}>
-            ${Math.abs(netWorth.totalLiabilities).toLocaleString()}
-          </ThemedText>
-        </View>
-      </View>
-
-      {/* Spending by Category */}
-      <View style={styles.spendingSection}>
-        <ThemedText type="title" style={styles.sectionTitle}>
-          Spending by Category
-        </ThemedText>
-        {getSpendingByCategory().map((category) => (
-          <View key={category.category} style={styles.categoryCard}>
-            <View style={styles.categoryInfo}>
-              <ThemedText type="title" style={styles.categoryName}>
-                {category.category}
-              </ThemedText>
-              <ThemedText style={styles.categoryCount}>
-                {category.count} transactions
-              </ThemedText>
-            </View>
-            <ThemedText type="title" style={styles.categoryAmount}>
-              ${category.total.toFixed(2)}
-            </ThemedText>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
-  );
-
-  const renderAccounts = () => (
-    <ScrollView style={styles.content}>
-      {accounts.map((account) => (
-        <View key={account.id} style={styles.accountCard}>
-          <View style={styles.accountHeader}>
-            <ThemedText type="title" style={styles.accountName}>
-              {account.name}
-            </ThemedText>
-            <ThemedText style={styles.accountNumber}>
-              {account.accountNumber}
-            </ThemedText>
-          </View>
-          <ThemedText 
-            type="title" 
-            style={[
-              styles.accountBalance,
-              { color: account.balance >= 0 ? '#4CAF50' : '#F44336' }
-            ]}
-          >
-            {account.balance >= 0 ? '+' : ''}${account.balance.toLocaleString()}
-          </ThemedText>
-        </View>
-      ))}
-    </ScrollView>
-  );
-
-  const renderTransactions = () => (
-    <View style={styles.transactionsContainer}>
-      <View style={styles.transactionsHeader}>
-        <ThemedText type="title" style={styles.transactionsTitle}>
-          Recent Transactions
-        </ThemedText>
-        <View style={styles.transactionButtons}>
-          <TouchableOpacity
-            style={[
-              styles.uploadButton,
-              { backgroundColor: Colors[colorScheme ?? 'light'].tint }
-            ]}
-            onPress={() => setShowUploadModal(true)}
-          >
-            <ThemedText style={styles.uploadButtonText}> Upload</ThemedText>
-          </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.addButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tint }
-          ]}
-          onPress={() => setShowAddModal(true)}
-        >
-          <ThemedText style={styles.addButtonText}>+ Add</ThemedText>
-        </TouchableOpacity>
-        </View>
-      </View>
-      <FlatList
-        style={styles.transactionsList}
-        data={transactions}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.transactionCard}>
-            <View style={styles.transactionLeft}>
-              <Text style={styles.transactionIcon}>{item.icon}</Text>
-              <View style={styles.transactionDetails}>
-                <ThemedText type="title" style={styles.transactionMerchant}>
-                  {item.merchant}
-                </ThemedText>
-                <ThemedText style={styles.transactionCategory}>
-                  {item.category}
-                </ThemedText>
-                <ThemedText style={styles.transactionDate}>
-                  {new Date(item.date).toLocaleDateString()}
-                </ThemedText>
-              </View>
-            </View>
-            <View style={styles.transactionRight}>
-              <ThemedText type="title" style={styles.transactionAmount}>
-                -${item.amount.toFixed(2)}
-              </ThemedText>
-              <ThemedText style={styles.transactionStatus}>
-                {item.status}
-              </ThemedText>
-            </View>
-          </View>
-        )}
-      />
-    </View>
-  );
+  const [transactionView, setTransactionView] = useState<TransactionViewType>('networth');
+  const { transactions, accounts, netWorth, addTransaction } = useExpenses();
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
-          Portfolio
-        </ThemedText>
-      </View>
+    <ThemedView style={{ flex: 1 }}>
+      {/* Limited gradient background with rounded bottom corners */}
+      <LinearGradient
+        colors={['#D9CCFF', '#936DFF']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{
+          paddingTop: 80,
+          // paddingBottom: 40,
+          borderBottomLeftRadius: 44,
+          borderBottomRightRadius: 44,
+          marginBottom: 20,
+          minHeight: 320, // Fixed height to ensure consistency
+        }}
+      >
+        {/* Transaction/Net Worth Toggle */}
+        <View style={{
+          flexDirection: 'row',
+          alignSelf: 'center',
+          backgroundColor: '#F8F9FA',
+          borderRadius: 55,
+          padding: 4,
+          width: '90%',
+          maxWidth: 400,
+          marginBottom: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.1,
+          shadowRadius: 2,
+          elevation: 2,
+        }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 55,
+              marginRight: 2,
+              backgroundColor: transactionView === 'transaction' ? AppColors.primary[300] : 'transparent',
+              shadowColor: transactionView === 'transaction' ? '#936DFF' : 'transparent',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: transactionView === 'transaction' ? 0.3 : 0,
+              shadowRadius: 4,
+              elevation: transactionView === 'transaction' ? 4 : 0,
+            }}
+            onPress={() => setTransactionView('transaction')}
+            activeOpacity={0.8}
+          >
+            <ThemedText style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: transactionView === 'transaction' ? '#FFFFFF' : '#848484',
+            }}>
+              Transaction
+            </ThemedText>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 55,
+              marginLeft: 2,
+              backgroundColor: transactionView === 'networth' ? AppColors.primary[300] : 'transparent',
+              shadowColor: transactionView === 'networth' ? '#936DFF' : 'transparent',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: transactionView === 'networth' ? 0.3 : 0,
+              shadowRadius: 4,
+              elevation: transactionView === 'networth' ? 4 : 0,
+            }}
+            onPress={() => setTransactionView('networth')}
+            activeOpacity={0.8}
+          >
+            <ThemedText style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: transactionView === 'networth' ? '#FFFFFF' : '#848484',
+            }}>
+              Net Worth
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.tabContainer}>
-        {renderTabButton('networth', 'Net Worth')}
-        {renderTabButton('account', 'Account')}
-        {renderTabButton('transactions', 'Transactions')}
-      </View>
+        {/* Hero Content within gradient - consistent height container */}
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+        }}>
+          {transactionView === 'networth' && (
+            <View style={{
+              padding: 40,
+              top: -10,
+              alignItems: 'center',
+            }}>
+              {/* Money bag icon */}
+              <View style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: '#ffffff',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 20,
+              }}>
+                <Icon name="moneyBagIcon" size={40} />
+              </View>
+              
+              <ThemedText style={{
+                fontSize: 18,
+                color: 'rgba(255, 255, 255, 0.8)',
+                // marginBottom: 8,
+              }}>
+                Your Net Worth
+              </ThemedText>
+              
+              <ThemedText style={{
+                fontSize: 48,
+                paddingTop: 40,
+                fontWeight: 'bold',
+                color: '#FFFFFF',
+              }}>
+                $86,540.00
+              </ThemedText>
+            </View>
+          )}
 
-      {activeTab === 'networth' && renderNetWorth()}
-      {activeTab === 'account' && renderAccounts()}
-      {activeTab === 'transactions' && renderTransactions()}
+          {transactionView === 'transaction' && (
+            <View style={{
+              flex: 1,
+              paddingHorizontal: 20,
+            }}>
+              {/* White container with summary cards */}
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 20,
+                marginTop: 60,
+                top: -50,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                flex: 1,
+                justifyContent: 'center',
+              }}>
+                {/* Account Dropdown - positioned above white container */}
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                }}>
+                  <TouchableOpacity style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: 10,
+                    minWidth: 100,
+                  }}>
+                    <ThemedText style={{
+                      fontSize: 15,
+                      fontWeight: '500',
+                      marginRight: 6,
+                    }}>Personal</ThemedText>
+                    <Icon name="downIcon" size={14} color="#666" />
+                  </TouchableOpacity>
+
+                  {/* Month Navigation - positi
+                  oned on the right */}
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                  }}>
+                    <TouchableOpacity style={{ padding: 2 }}>
+                      <Icon name="leftArrow" size={8} color="#666" />
+                    </TouchableOpacity>
+                    <ThemedText style={{
+                      fontSize: 15,
+                      fontWeight: '600',
+                      marginHorizontal: 10,
+                      color: '#000',
+                    }}>July 2025</ThemedText>
+                    <TouchableOpacity style={{ padding: 2 }}>
+                      <Icon name="rightArrow" size={8} color="#666" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Summary Cards */}
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-around',
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                }}>
+                  <View style={{
+                    alignItems: 'center',
+                    flex: 1,
+                  }}>
+                    <ThemedText style={{
+                      fontSize: 24,
+                      fontWeight: 'bold',
+                      marginBottom: 2,
+                      color: '#000',
+                    }}>$10000</ThemedText>
+                    <ThemedText style={{
+                      fontSize: 14,
+                      color: '#666',
+                    }}>Income</ThemedText>
+                  </View>
+                  <View style={{
+                    alignItems: 'center',
+                    flex: 1,
+                  }}>
+                    <ThemedText style={{
+                      fontSize: 24,
+                      fontWeight: 'bold',
+                      marginBottom: 2,
+                      color: '#000',
+                    }}>$200</ThemedText>
+                    <ThemedText style={{
+                      fontSize: 14,
+                      color: '#666',
+                    }}>Expenses</ThemedText>
+                  </View>
+                  <View style={{
+                    alignItems: 'center',
+                    flex: 1,
+                  }}>
+                    <ThemedText style={{
+                      fontSize: 24,
+                      fontWeight: 'bold',
+                      marginBottom: 2,
+                      color: '#000',
+                    }}>$800</ThemedText>
+                    <ThemedText style={{
+                      fontSize: 14,
+                      color: '#666',
+                    }}>Balance</ThemedText>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+      </LinearGradient>
+
+      {/* Content below gradient (normal background) */}
+      {transactionView === 'transaction' && (
+        <TransactionView 
+          transactions={transactions} 
+          addTransaction={addTransaction} 
+        />
+      )}
+      {transactionView === 'networth' && (
+        <NetWorthView netWorth={netWorth} />
+      )}
 
       <AddTransactionModal
         visible={showAddModal}
@@ -215,246 +304,3 @@ export default function PortfolioScreen() {
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  activeTabButton: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tabButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  activeTabButtonText: {
-    color: '#fff',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  netWorthCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  netWorthTitle: {
-    fontSize: 18,
-    marginBottom: 8,
-    opacity: 0.7,
-  },
-  netWorthAmount: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  netWorthChange: {
-    alignItems: 'center',
-  },
-  changeText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  changeLabel: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginTop: 4,
-  },
-  summaryCards: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  summaryCard: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  summaryLabel: {
-    fontSize: 14,
-    opacity: 0.7,
-    marginBottom: 8,
-  },
-  summaryAmount: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  accountCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 12,
-  },
-  accountHeader: {
-    marginBottom: 12,
-  },
-  accountName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  accountNumber: {
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  accountBalance: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  transactionCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  transactionLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  transactionIcon: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  transactionDetails: {
-    flex: 1,
-  },
-  transactionMerchant: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  transactionCategory: {
-    fontSize: 14,
-    opacity: 0.6,
-    marginBottom: 2,
-  },
-  transactionDate: {
-    fontSize: 12,
-    opacity: 0.5,
-  },
-  transactionRight: {
-    alignItems: 'flex-end',
-  },
-  transactionAmount: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#F44336',
-    marginBottom: 2,
-  },
-  transactionStatus: {
-    fontSize: 12,
-    opacity: 0.6,
-  },
-  spendingSection: {
-    marginTop: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  categoryCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  categoryInfo: {
-    flex: 1,
-  },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  categoryCount: {
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  categoryAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#F44336',
-  },
-  transactionsContainer: {
-    flex: 1,
-  },
-  transactionsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  transactionsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  transactionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  uploadButton: {
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  uploadButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  addButton: {
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  addButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  transactionsList: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-});

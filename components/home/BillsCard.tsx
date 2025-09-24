@@ -48,7 +48,6 @@ export function BillsCard({ bills, onAddBills }: BillsCardProps) {
           Total Bills: {formatCurrency(totalBills)}
         </ThemedText>
       </View>
-      <ThemedText style={styles.billsMessage}>Bills got you shook? Stay on top!</ThemedText>
     </View>
   );
 }

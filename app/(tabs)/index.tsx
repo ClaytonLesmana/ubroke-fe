@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, StyleSheet, Alert, View, TouchableOpacity } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { AppColors } from "@/constants/Colors";
 import { Image } from "expo-image";
 import { Icon } from "@/components/Icon";
+import { useRouter } from "expo-router";
 
 // Import all the new components
 import { JourneyCard } from "@/components/home/JourneyCard";
@@ -13,8 +14,13 @@ import { BudgetCard } from "@/components/home/BudgetCard";
 import { BillsCard } from "@/components/home/BillsCard";
 import { GoalsCard } from "@/components/home/GoalsCard";
 import { PaydayCard } from "@/components/home/PaydayCard";
+import { AddPaydayModal } from "@/components/AddPaydayModal";
+
 
 export default function HomePage() {
+  const router = useRouter();
+  const [showAddPaydayModal, setShowAddPaydayModal] = useState(false);
+  
   // Example of how backend data would look:
   // const backendSpendingData = [
   //   { categoryId: "food", name: "Food & Dining", amount: 423.50, color: "#EF4444", transactions: 15 },
@@ -48,11 +54,12 @@ export default function HomePage() {
       daysLeft: 3,
       budgets: [
         {
-          name: "Groceries",
-          spent: 66,
-          budget: 150,
-          icon: "🛒",
+    name: "Groceries",
+    spent: 66,
+    budget: 150,
+    icon: "🛒",
           frequency: 'weekly' as const,
+          category: 'groceries' as const,
         },
         {
           name: "Transport",
@@ -60,6 +67,7 @@ export default function HomePage() {
           budget: 50,
           icon: "🚗",
           frequency: 'weekly' as const,
+          category: 'carMaintenance' as const,
         },
       ],
     },
@@ -73,6 +81,7 @@ export default function HomePage() {
           budget: 200,
           icon: "🎬",
           frequency: 'fortnightly' as const,
+          category: 'entertainment' as const,
         },
       ],
     },
@@ -86,6 +95,7 @@ export default function HomePage() {
           budget: 500,
           icon: "🛍️",
           frequency: 'monthly' as const,
+          category: 'shopping' as const,
         },
         {
           name: "Utilities",
@@ -93,6 +103,7 @@ export default function HomePage() {
           budget: 200,
           icon: "⚡",
           frequency: 'monthly' as const,
+          category: 'electricity' as const,
         },
       ],
     },
@@ -127,10 +138,16 @@ export default function HomePage() {
   const handleViewBudget = () => Alert.alert("View Budget", "Navigate to budget page");
   const handleAddBills = () => Alert.alert("Add Bills", "Open bill creation form");
   const handleAddGoals = () => Alert.alert("Add Goals", "Open goal creation form");
-  const handleAddIncome = () => Alert.alert("Add Income", "Open income form");
+  const handleAddIncome = () => setShowAddPaydayModal(true);
   const handleUpdateIncome = (index: number) => Alert.alert("Update Income", `Update income source ${index + 1}`);
-  const handleTapToDigDeeper = () => Alert.alert("Dig Deeper", "Navigate to detailed spending analysis");
-
+    const handleTapToDigDeeper = () => Alert.alert("Dig Deeper", "Navigate to detailed spending analysis");
+  
+  const handleSavePayday = (items: any[]) => {
+    console.log("Saved payday items:", items);
+    Alert.alert("Success", `Added ${items.length} payday item(s)`);
+    setShowAddPaydayModal(false);
+  };
+  
   return (
     <ThemedView style={styles.container}>
       <Image 
@@ -273,8 +290,8 @@ export default function HomePage() {
             console.log(`Month changed to ${month} ${year}`);
             // Here you would typically fetch new data for the selected month
           }}
-          onTapToDigDeeper={handleTapToDigDeeper}
-          onSeeCashflowDetails={() => Alert.alert("Cashflow Details", "Navigate to cashflow details")}
+          onTapToDigDeeper={() => router.push('/(tabs)/cashflow-details')}
+          onSeeCashflowDetails={() => router.push('/(tabs)/cashflow-details')}
         />
 
         <BudgetCard 
@@ -300,6 +317,12 @@ export default function HomePage() {
         />
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      <AddPaydayModal
+        visible={showAddPaydayModal}
+        onClose={() => setShowAddPaydayModal(false)}
+        onSave={handleSavePayday}
+      />
     </ThemedView>
   );
 }

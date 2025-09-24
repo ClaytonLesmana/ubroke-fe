@@ -102,12 +102,12 @@ export function PaydayCard({
                 color: AppColors.gray[500],
                 marginBottom: 2,
               }}>{formatCurrency(source.amount)}</ThemedText>
-              <TouchableOpacity onPress={() => onUpdateIncome?.(index)}>
+              {/* <TouchableOpacity onPress={() => onUpdateIncome?.(index)}>
                 <ThemedText style={{
                   fontSize: 12,
                   color: AppColors.primary[300],
                 }}>+ Update</ThemedText>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
         ))}

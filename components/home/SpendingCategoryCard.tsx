@@ -3,6 +3,8 @@ import { View, TouchableOpacity, Animated, Easing, Image } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
 import Svg, { Path, G, Defs, Filter, FeFlood, FeColorMatrix, FeOffset, FeGaussianBlur, FeComposite, FeBlend } from 'react-native-svg';
+import { Icon } from '@/components/Icon';
+import { useRouter } from 'expo-router';
 
 interface SpendingCategory {
   name: string;
@@ -324,15 +326,12 @@ export function SpendingCategoryCard({
         </View>
       </View>
       
-      <TouchableOpacity onPress={onTapToDigDeeper}>
-        <ThemedText style={{
-          fontSize: 14,
-          color: AppColors.gray[400],
-          textAlign: 'center',
-          fontStyle: 'italic',
-        }}>
-          Where's your cash going? Slice it up! Tap to dig deeper
-        </ThemedText>
+      <TouchableOpacity 
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} 
+        onPress={onTapToDigDeeper}
+      >
+        <ThemedText style={{ fontSize: 14, color: AppColors.primary[300],marginRight: 4, fontWeight: '500' }}>See details</ThemedText>
+        <Icon name="rightArrow" size={6}  color={AppColors.primary[300]} />
       </TouchableOpacity>
     </View>
   );

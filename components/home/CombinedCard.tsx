@@ -1,10 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, Image, Animated, Easing } from 'react-native';
+import React, { useState } from 'react';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
+import { Icon } from '@/components/Icon';
 import { AppColors } from '@/constants/Colors';
 import { SpendingCategoryCard } from './SpendingCategoryCard';
 import { CashflowCard } from './CashflowCard';
 import { MonthSlider } from './MonthSlider';
+import { useRouter } from 'expo-router';
+import Svg, { Rect, Line } from 'react-native-svg';
 
 interface SpendingCategory {
   name: string;
@@ -42,19 +45,9 @@ export function CombinedCard({
   onTapToDigDeeper,
   onSeeCashflowDetails
 }: CombinedCardProps) {
+  const router = useRouter();
   const [viewMode, setViewMode] = useState<'spending' | 'cashflow'>('spending');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownAnimation = useRef(new Animated.Value(0)).current;
-
-  // Dropdown animation
-  useEffect(() => {
-    Animated.timing(dropdownAnimation, {
-      toValue: isDropdownOpen ? 1 : 0,
-      duration: 200,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    }).start();
-  }, [isDropdownOpen]);
 
   return (
     <View style={{
@@ -78,7 +71,7 @@ export function CombinedCard({
 
       {/* Content container with corner dropdown pinned inside inner card */}
       <View style={{ position: 'relative' }}>
-        {/* Corner pill dropdown (inside child card padding area) */}
+        {/* Dropdown trigger button */}
         <TouchableOpacity
           onPress={() => setIsDropdownOpen(!isDropdownOpen)}
           style={{
@@ -88,65 +81,80 @@ export function CombinedCard({
             zIndex: 10,
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 8,
+            justifyContent: 'space-between',
+            backgroundColor: AppColors.gray[0],
+            borderWidth: 1,
+            borderColor: AppColors.gray[200],
             paddingHorizontal: 12,
-            paddingVertical: 5,
-            backgroundColor: AppColors.primary[100],
-            borderRadius: 35,
-            // shadowColor: '#000',
-            // shadowOffset: { width: 0, height: 2 },
-            // shadowOpacity: 0.12,
-            // shadowRadius: 6,
-            // elevation: 3,
+            paddingVertical: 8,
+            borderRadius: 8,
+            minWidth: 140
           }}
         >
           <ThemedText style={{
-            fontSize: 12,
-            color: AppColors.gray[500],
-            letterSpacing: 0.5,
+            fontSize: 14,
+            color: AppColors.gray[500]
           }}>
-            {viewMode === 'spending' ? 'EXPENSES' : 'CASHFLOW'}
+            {viewMode === 'spending' ? 'Expenses' : viewMode === 'cashflow' ? 'Cashflow' : 'Net'}
           </ThemedText>
-          <Image 
-            source={require('@/assets/images/dropDown.png')} 
-            style={{ width: 12, height: 12, tintColor: AppColors.gray[500], transform: [{ rotate: isDropdownOpen ? '180deg' : '0deg' }] }}
-          />
+          <Icon name={isDropdownOpen ? "upIcon" : "downIcon"} size={15} color={AppColors.gray[400]} />
         </TouchableOpacity>
 
         {/* Dropdown menu */}
-        <Animated.View style={{
-          position: 'absolute',
-          top: 52,
-          left: 4,
-          zIndex: 9,
-          width: 200,
-          maxHeight: dropdownAnimation.interpolate({ inputRange: [0, 1], outputRange: [0, 120] }),
-          overflow: 'hidden',
-          borderRadius: 12,
-          backgroundColor: AppColors.gray[100],
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.12,
-          shadowRadius: 8,
-          elevation: 4,
-        }}>
-          <TouchableOpacity
-            onPress={() => { setViewMode('spending'); setIsDropdownOpen(false); }}
-            style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: viewMode === 'spending' ? AppColors.primary[100] : 'transparent' }}
-          >
-            <ThemedText style={{ fontSize: 14, color: viewMode === 'spending' ? AppColors.primary[300] : AppColors.gray[500], fontWeight: viewMode === 'spending' ? '600' : '400' }}>
-              Spending Categories
-            </ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => { setViewMode('cashflow'); setIsDropdownOpen(false); }}
-            style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: viewMode === 'cashflow' ? AppColors.primary[100] : 'transparent' }}
-          >
-            <ThemedText style={{ fontSize: 14, color: viewMode === 'cashflow' ? AppColors.primary[300] : AppColors.gray[500], fontWeight: viewMode === 'cashflow' ? '600' : '400' }}>
-              Cashflow
-            </ThemedText>
-          </TouchableOpacity>
-        </Animated.View>
+        {isDropdownOpen && (
+          <View style={{
+            position: 'absolute',
+            top: 52,
+            left: 4,
+            right: 0,
+            width: 138,
+            backgroundColor: AppColors.gray[0],
+            borderRadius: 8,
+            marginTop: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 4,
+            zIndex: 1000
+          }}>
+            <TouchableOpacity
+              onPress={() => { setViewMode('spending'); setIsDropdownOpen(false); }}
+              style={{ 
+                paddingHorizontal: 12, 
+                paddingVertical: 10, 
+                borderBottomWidth: 1,
+                borderBottomColor: AppColors.gray[100]
+              }}
+            >
+              <ThemedText style={{ 
+                fontSize: 14, 
+                color: viewMode === 'spending' ? AppColors.primary[300] : AppColors.gray[500], 
+                fontWeight: viewMode === 'spending' ? '600' : '400' 
+              }}>
+                Expenses
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { setViewMode('cashflow'); setIsDropdownOpen(false); }}
+              style={{ 
+                paddingHorizontal: 12, 
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: AppColors.gray[100]
+              }}
+            >
+              <ThemedText style={{ 
+                fontSize: 14, 
+                color: viewMode === 'cashflow' ? AppColors.primary[300] : AppColors.gray[500], 
+                fontWeight: viewMode === 'cashflow' ? '600' : '400' 
+              }}>
+                Cashflow
+              </ThemedText>
+            </TouchableOpacity>
+
+          </View>
+        )}
 
         {/* Content (no extra padding; pill sits within inner card area) */}
         <View>
