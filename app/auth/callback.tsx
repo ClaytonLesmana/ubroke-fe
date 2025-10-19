@@ -4,6 +4,8 @@ import { View, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import { scale } from "@/lib/scale";
+import { spacing } from "@/lib/theme";
 
 export default function AuthCallback() {
   const [message, setMessage] = useState("Completing sign in...");
@@ -40,8 +42,8 @@ export default function AuthCallback() {
   }, [session]);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1a1a2e", padding: 20 }}>
-      <ThemedText style={{ color: "#FFFFFF", fontSize: 18, textAlign: "center", marginBottom: 20 }}>{message}</ThemedText>
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1a1a2e", padding: spacing.lg }}>
+      <ThemedText style={{ color: "#FFFFFF", fontSize: scale(18), textAlign: "center", marginBottom: spacing.md }}>{message}</ThemedText>
     </View>
   );
 }

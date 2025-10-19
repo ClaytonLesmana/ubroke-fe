@@ -7,6 +7,9 @@ import { Icon } from "@/components/Icon";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useExpenses } from "@/hooks/useExpenses";
 import { CategoryIcon, CategoryType, getCategoryFromTransaction } from "@/components/CategoryIcon";
+import { scale } from "@/lib/scale";
+import { spacing, radii, colors } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 export default function TransactionDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,11 +18,9 @@ export default function TransactionDetailsScreen() {
 
   const tx = transactions.find(t => String(t.id) === String(id));
 
-  // Fallback shape if not found
   const merchant = tx?.merchant ?? 'Transaction';
   const amount = tx?.amount ?? 0;
   const date = tx?.date ?? new Date().toISOString().split('T')[0];
-//   const status = (tx as any)?.status ?? 'Pending';
   const outcomeBsb = '0492819';
   const outcomeAcc = 'xxx-xxx xxxx2839';
   const institution = 'STACRBUCK';
@@ -28,55 +29,51 @@ export default function TransactionDetailsScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, backgroundColor: '#F6F3FF', flexGrow: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: scale(40), backgroundColor: '#F6F3FF', flexGrow: 1 }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 36, top:40 }}>
-          <TouchableOpacity onPress={() => router.back()} style={{ padding: 8, marginRight: 8 }}>
-            <Icon name="leftArrow" size={10} color={'#111'} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: scale(24), top: scale(40) }}>
+          <TouchableOpacity onPress={() => router.back()} style={{ padding: scale(8), marginRight: scale(8) }}>
+            <Icon name="leftArrow" size={scale(10)} color={'#111'} />
           </TouchableOpacity>
-          <ThemedText style={{ fontSize: 20, fontWeight: '600' }}>Transaction detail</ThemedText>
+          <ThemedText style={{ fontSize: scale(20), fontWeight: '600' }}>Transaction detail</ThemedText>
         </View>
 
         {/* Card with floating icon */}
-        <View style={{ alignItems: 'center', marginTop: 24 }}>
+        <View style={{ alignItems: 'center', marginTop: scale(12) }}>
           <View style={{
-            width: 75,
-            height: 75,
-            borderRadius: 58,
-            backgroundColor: '#FFFFFF',
+            width: scale(84),
+            height: scale(84),
+            borderRadius: scale(42),
+            backgroundColor: colors.surface,
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            elevation: 6,
             zIndex: 2,
+            ...cardShadow,
           }}>
-            <CategoryIcon category={category} size={75} color={AppColors.primary[300]} />
+            <CategoryIcon category={category} size={scale(40)} color={AppColors.primary[300]} />
           </View>
 
           <View style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: 28,
-            marginTop: -58,
-            paddingTop: 76,
-            paddingBottom: 18,
-            paddingHorizontal: 20,
+            backgroundColor: colors.surface,
+            borderRadius: radii.xl,
+            marginTop: -scale(42),
+            paddingTop: scale(56),
+            paddingBottom: scale(16),
+            paddingHorizontal: spacing.lg,
             width: '100%',
+            ...cardShadow,
           }}>
             <ThemedText style={{
-              fontSize: 28,
+              fontSize: scale(24),
               fontWeight: '800',
               textAlign: 'center',
-              marginBottom: 6,
-              color: '#111',
+              marginBottom: scale(6),
+              color: colors.text,
             }}>{merchant}</ThemedText>
-            <ThemedText style={{ textAlign: 'center', color: '#9AA0A6', marginBottom: 12 }}>{formatHumanDate(date)}</ThemedText>
-            <ThemedText style={{ textAlign: 'center', fontSize: 32, fontWeight: '900', marginBottom: 24 }}>${amount}</ThemedText>
+            <ThemedText style={{ textAlign: 'center', color: colors.muted, marginBottom: scale(10) }}>{formatHumanDate(date)}</ThemedText>
+            <ThemedText style={{ textAlign: 'center', fontSize: scale(28), fontWeight: '900', marginBottom: scale(20) }}>${amount}</ThemedText>
 
             {/* Two-column details */}
-            {/* <RowSplit leftLabel="PENDING:" rightValue={String(status).toUpperCase()} /> */}
             <RowSplit leftLabel="OUTCOME:" rightValue={`BSB: ${outcomeBsb}\nAcc: ${outcomeAcc}`} />
             <RowSplit leftLabel={""} rightValue={`${institution}\n${address}`} muted />
             <RowSplit leftLabel="NOTE:" rightValue="" />
@@ -84,13 +81,13 @@ export default function TransactionDetailsScreen() {
         </View>
 
         {/* Manage section */}
-        <View style={{ marginTop: 24 }}>
-          <ThemedText style={{ fontSize: 24, fontWeight: '800', marginBottom: 12 }}>Manage</ThemedText>
+        <View style={{ marginTop: spacing.lg }}>
+          <ThemedText style={{ fontSize: scale(22), fontWeight: '800', marginBottom: spacing.md }}>Manage</ThemedText>
 
-          <ManageItem title="General Merchandise" left={<CategoryIcon category={category} size={22} color={AppColors.primary[300]} />} right={<Icon name="downIcon" size={14} color="#6F6F6F" />} />
-          <ManageItem title="Tag Transaction" left={<CategoryIcon category={'miscellaneous'} size={22} color={AppColors.primary[300]} />} right={<Icon name="addIcon" size={16} color="#6F6F6F" />} />
-          <ManageItem title="Split Bill" left={<CategoryIcon category={'drinks'} size={22} color={AppColors.primary[300]} />} right={<Icon name="rightArrow" size={10} color="#6F6F6F" />} />
-          <ManageItem title="Exclude from tracking" left={<CategoryIcon category={'shopping'} size={22} color={AppColors.primary[300]} />} right={<Icon name="rightArrow" size={10} color="#6F6F6F" />} />
+          <ManageItem title="General Merchandise" left={<CategoryIcon category={category} size={scale(22)} color={AppColors.primary[300]} />} right={<Icon name="downIcon" size={scale(14)} color="#6F6F6F" />} />
+          <ManageItem title="Tag Transaction" left={<CategoryIcon category={'miscellaneous'} size={scale(22)} color={AppColors.primary[300]} />} right={<Icon name="addIcon" size={scale(16)} color="#6F6F6F" />} />
+          <ManageItem title="Split Bill" left={<CategoryIcon category={'drinks'} size={scale(22)} color={AppColors.primary[300]} />} right={<Icon name="rightArrow" size={scale(10)} color="#6F6F6F" />} />
+          <ManageItem title="Exclude from tracking" left={<CategoryIcon category={'shopping'} size={scale(22)} color={AppColors.primary[300]} />} right={<Icon name="rightArrow" size={scale(10)} color="#6F6F6F" />} />
         </View>
       </ScrollView>
     </ThemedView>
@@ -99,11 +96,11 @@ export default function TransactionDetailsScreen() {
 
 function RowSplit({ leftLabel, rightValue, muted = false }: { leftLabel: string; rightValue: string; muted?: boolean }) {
   return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: scale(14) }}>
       <ThemedText style={{ color: '#8B8B8B', fontWeight: '600' }}>{leftLabel}</ThemedText>
       <View style={{ alignItems: 'flex-end' }}>
         {rightValue.split('\n').map((line, idx) => (
-          <ThemedText key={idx} style={{ color: muted ? '#9AA0A6' : '#111', fontWeight: muted ? '400' : '600' }}>{line}</ThemedText>
+          <ThemedText key={idx} style={{ color: muted ? colors.muted : colors.text, fontWeight: muted ? '400' : '600' }}>{line}</ThemedText>
         ))}
       </View>
     </View>
@@ -113,18 +110,19 @@ function RowSplit({ leftLabel, rightValue, muted = false }: { leftLabel: string;
 function ManageItem({ title, left, right }: { title: string; left: React.ReactNode; right: React.ReactNode }) {
   return (
     <View style={{
-      backgroundColor: '#FFFFFF',
-      borderRadius: 22,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
-      marginBottom: 12,
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      marginBottom: spacing.md,
       flexDirection: 'row',
       alignItems: 'center',
+      ...cardShadow,
     }}>
-      <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#F3ECFF', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+      <View style={{ width: scale(42), height: scale(42), borderRadius: scale(12), backgroundColor: '#F3ECFF', alignItems: 'center', justifyContent: 'center', marginRight: spacing.md }}>
         {left}
       </View>
-      <ThemedText style={{ fontSize: 16, fontWeight: '700', flex: 1 }}>{title}</ThemedText>
+      <ThemedText style={{ fontSize: scale(16), fontWeight: '700', flex: 1 }}>{title}</ThemedText>
       {right}
     </View>
   );

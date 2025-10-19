@@ -5,12 +5,14 @@ import { AppColors } from '@/constants/Colors';
 import Svg, { Path, G, Defs, Filter, FeFlood, FeColorMatrix, FeOffset, FeGaussianBlur, FeComposite, FeBlend } from 'react-native-svg';
 import { Icon } from '@/components/Icon';
 import { useRouter } from 'expo-router';
+import { scale } from '@/lib/scale';
+import { spacing, radii, colors } from '@/lib/theme';
+import { cardShadow } from '@/lib/shadow';
 
 interface SpendingCategory {
   name: string;
   amount: number;
   color: string;
-  // Optional fields that might come from backend
   categoryId?: string;
   percentage?: number;
   transactions?: number;
@@ -29,28 +31,17 @@ export function SpendingCategoryCard({
   onMonthChange,
   onTapToDigDeeper 
 }: SpendingCategoryCardProps) {
-  // Calculate totals and percentages dynamically
   const totalSpending = categories.reduce((sum, category) => sum + category.amount, 0);
-  
-  // Find the largest category for center display
   const largestCategory = categories.reduce((max, category) => 
     category.amount > max.amount ? category : max, categories[0]
   );
   const largestPercentage = (largestCategory.amount / totalSpending) * 100;
-
-  // Sort categories by amount (largest first) for better visual hierarchy
   const sortedCategories = [...categories].sort((a, b) => b.amount - a.amount);
-
-  // Interaction state: which segment is selected
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  
-  // Store animated values and offsets
   const popoutValuesRef = useRef<Animated.Value[]>([]);
   const [offsets, setOffsets] = useState<Array<{dx: number, dy: number}>>(() => 
     categories.map(() => ({ dx: 0, dy: 0 }))
   );
-  
-  // Store donut paths data for listener access
   const donutPathsRef = useRef<Array<{
     path: string;
     color: string;
@@ -64,13 +55,11 @@ export function SpendingCategoryCard({
     setSelectedIndex(prev => (prev === index ? null : index));
   };
 
-  // Initialize popoutValues when categories change
   useEffect(() => {
     popoutValuesRef.current = sortedCategories.map(() => new Animated.Value(0));
     setOffsets(sortedCategories.map(() => ({ dx: 0, dy: 0 })));
   }, [sortedCategories.length]);
 
-  // Set up animation listeners (only once, no dependencies)
   useEffect(() => {
     const setupListeners = () => {
       const currentPopoutValues = popoutValuesRef.current;
@@ -79,7 +68,7 @@ export function SpendingCategoryCard({
           const pathData = donutPathsRef.current[i];
           if (pathData) {
             const angle = pathData.midAngle;
-            const distance = 8 * value;
+            const distance = scale(8) * value;
             const dx = distance * Math.cos(angle);
             const dy = distance * Math.sin(angle);
             setOffsets(prev => {
@@ -101,9 +90,8 @@ export function SpendingCategoryCard({
 
     const cleanup = setupListeners();
     return cleanup;
-  }, []); // Empty dependency array to prevent infinite loops
+  }, []);
 
-  // Handle selection animations
   useEffect(() => {
     const currentPopoutValues = popoutValuesRef.current;
     currentPopoutValues.forEach((val, i) => {
@@ -116,15 +104,14 @@ export function SpendingCategoryCard({
     });
   }, [selectedIndex]);
 
-  // Generate dynamic donut chart paths based on categories
   const generateDonutPaths = () => {
-    const centerX = 90;
-    const centerY = 90;
-    const outerRadius = 80;
-    const innerRadius = 50;
-    const gap = 0.08; // Small gap between segments
+    const centerX = scale(90);
+    const centerY = scale(90);
+    const outerRadius = scale(80);
+    const innerRadius = scale(50);
+    const gap = 0.08;
     
-    let currentAngle = -Math.PI / 2; // Start from top
+    let currentAngle = -Math.PI / 2;
     const paths: Array<{
       path: string;
       color: string;
@@ -138,12 +125,10 @@ export function SpendingCategoryCard({
       const percentage = (category.amount / totalSpending);
       const segmentAngle = percentage * (2 * Math.PI - gap * sortedCategories.length);
       
-      // Calculate start and end angles
       const startAngle = currentAngle;
       const endAngle = currentAngle + segmentAngle;
       const midAngle = (startAngle + endAngle) / 2;
       
-      // Create rounded segment path
       const path = createRoundedSegmentPath(
         centerX, 
         centerY, 
@@ -153,24 +138,14 @@ export function SpendingCategoryCard({
         endAngle
       );
       
-      paths.push({
-        path,
-        color: category.color,
-        percentage: percentage * 100,
-        startAngle,
-        endAngle,
-        midAngle,
-      });
-      
+      paths.push({ path, color: category.color, percentage: percentage * 100, startAngle, endAngle, midAngle });
       currentAngle = endAngle + gap;
     });
     
-    // Update the ref for listener access
     donutPathsRef.current = paths;
     return paths;
   };
 
-  // Create rounded segment path
   const createRoundedSegmentPath = (
     centerX: number, 
     centerY: number, 
@@ -189,11 +164,8 @@ export function SpendingCategoryCard({
     const innerEndX = centerX + innerRadius * Math.cos(endAngle);
     const innerEndY = centerY + innerRadius * Math.sin(endAngle);
     
-    // Outer arc
     const largeArcFlag = Math.abs(endAngle - startAngle) > Math.PI ? 1 : 0;
     const outerArc = `A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${outerEndX} ${outerEndY}`;
-    
-    // Inner arc (reverse direction)
     const innerArc = `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStartX} ${innerStartY}`;
     
     return `M ${outerStartX} ${outerStartY} ${outerArc} L ${innerEndX} ${innerEndY} ${innerArc} Z`;
@@ -204,28 +176,16 @@ export function SpendingCategoryCard({
   return (
     <View style={{
       backgroundColor: AppColors.gray[0],
-      borderRadius: 24,
-      padding: 20,
-      paddingTop: 55,
-      marginHorizontal: -8,
-      marginBottom: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 6,
-      elevation: 3,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      paddingTop: scale(55),
+      marginHorizontal: -scale(8),
+      marginBottom: spacing.md,
+      ...cardShadow,
     }}>
-
-
-      <View style={{
-        alignItems: 'center',
-        marginBottom: 20,
-      }}>
-        <View style={{
-          position: 'relative',
-          marginBottom: 24,
-        }}>
-          <Svg width={180} height={180} viewBox="0 0 180 180">
+      <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
+        <View style={{ position: 'relative', marginBottom: spacing.lg }}>
+          <Svg width={scale(180)} height={scale(180)} viewBox={`0 0 ${scale(180)} ${scale(180)}`}>
             <Defs>
               <Filter id="filter0_d_230_1307" x="0" y="0" width="180" height="180" filterUnits="userSpaceOnUse">
                 <FeFlood floodOpacity="0" result="BackgroundImageFix"/>
@@ -241,10 +201,7 @@ export function SpendingCategoryCard({
             
             <G filter="url(#filter0_d_230_1307)">
               {donutPaths.map((segment, index) => {
-                const opacity = selectedIndex === null
-                  ? 1
-                  : (selectedIndex === index ? 1 : 0.35);
-
+                const opacity = selectedIndex === null ? 1 : (selectedIndex === index ? 1 : 0.35);
                 return (
                   <Path
                     key={index}
@@ -258,25 +215,14 @@ export function SpendingCategoryCard({
               })}
             </G>
           </Svg>
-          
-          {/* Center text showing largest category */}
-          {/* <View style={styles.centerText}>
-            <ThemedText style={styles.percentageText}>
-              {largestPercentage.toFixed(0)}%
-            </ThemedText>
-            <ThemedText style={styles.categoryText}>
-              {largestCategory.name}
-            </ThemedText>
-          </View> */}
         </View>
         
-        {/* Legend at the bottom */}
         <View style={{
           width: '100%',
           flexDirection: 'row',
           justifyContent: 'space-around',
           flexWrap: 'wrap',
-          gap: 16,
+          gap: scale(16),
         }}>
           {sortedCategories.map((category, index) => {
             const percentage = (category.amount / totalSpending) * 100;
@@ -286,33 +232,25 @@ export function SpendingCategoryCard({
                 <View style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 8,
-                  minWidth: 80,
+                  gap: scale(8),
+                  minWidth: scale(80),
                   ...(isSelected && {
                     backgroundColor: AppColors.gray[100],
-                    borderRadius: 8,
-                    paddingHorizontal: 8,
-                    paddingVertical: 6,
+                    borderRadius: radii.md,
+                    paddingHorizontal: spacing.sm,
+                    paddingVertical: scale(6),
                   }),
                 }}>
-                  {/* <View style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 6,
-                    backgroundColor: category.color,
-                  }} /> */}
-                  <View style={{
-                    flex: 1,
-                  }}>
+                  <View style={{ flex: 1 }}>
                     <ThemedText style={{
-                      fontSize: 11,
+                      fontSize: scale(11),
                       fontWeight: isSelected ? '600' : '500',
                       color: AppColors.gray[500],
                     }}>
                       {category.name}
                     </ThemedText>
                     <ThemedText style={{
-                      fontSize: 10,
+                      fontSize: scale(10),
                       color: AppColors.gray[400],
                       fontWeight: isSelected ? '600' : '400',
                     }}>
@@ -325,13 +263,13 @@ export function SpendingCategoryCard({
           })}
         </View>
       </View>
-      
+
       <TouchableOpacity 
-        style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }} 
+        style={{ flexDirection: 'row', alignItems: 'center', gap: scale(4) }} 
         onPress={onTapToDigDeeper}
       >
-        <ThemedText style={{ fontSize: 14, color: AppColors.primary[300],marginRight: 4, fontWeight: '500' }}>See details</ThemedText>
-        <Icon name="rightArrow" size={6}  color={AppColors.primary[300]} />
+        <ThemedText style={{ fontSize: scale(14), color: AppColors.primary[300],marginRight: scale(4), fontWeight: '500' }}>See details</ThemedText>
+        <Icon name="rightArrow" size={scale(6)}  color={AppColors.primary[300]} />
       </TouchableOpacity>
     </View>
   );

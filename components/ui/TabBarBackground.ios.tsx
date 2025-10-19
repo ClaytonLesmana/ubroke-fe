@@ -1,6 +1,8 @@
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { AppColors } from '@/constants/Colors';
+import { scale } from '@/lib/scale';
+import { radii } from '@/lib/theme';
 
 export default function BlurTabBarBackground() {
   return (
@@ -11,14 +13,13 @@ export default function BlurTabBarBackground() {
         left: 0,
         right: 0,
         bottom: 0,
-        // backgroundColor: AppColors.gray[0],
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: radii.lg,
+        borderTopRightRadius: radii.lg,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
+        shadowOffset: { width: 0, height: -scale(2) },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 8,
+        shadowRadius: scale(4),
+        elevation: Platform.select({ ios: 0, android: 8 }),
       }}
     />
   );

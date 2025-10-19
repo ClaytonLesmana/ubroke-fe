@@ -13,12 +13,14 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/hooks/useAuth";
 import { AppColors } from "@/constants/Colors";
+import { scale } from "@/lib/scale";
+import { spacing, radii } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 const { width, height } = Dimensions.get("window");
 
 export default function WelcomePage() {
   const { checkCurrentSession, user, isAuthenticated } = useAuth();
-
 
   const handleGetStarted = () => {
     router.push("/onboarding/auth");
@@ -34,9 +36,9 @@ export default function WelcomePage() {
       <ScrollView 
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: 80,
-          paddingBottom: 100,
-          paddingHorizontal: 24,
+          paddingTop: scale(80),
+          paddingBottom: scale(100),
+          paddingHorizontal: spacing.lg,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -44,13 +46,13 @@ export default function WelcomePage() {
           {/* Logo Area */}
           <View style={{
             alignItems: 'center',
-            marginTop: 20,
+            marginTop: scale(20),
           }}>
             <Image
               source={require('@/assets/images/logo.png')}
               style={{
-                width: 99,
-                height: 18,
+                width: scale(99),
+                height: scale(18),
                 resizeMode: 'contain',
               }}
             />
@@ -61,43 +63,43 @@ export default function WelcomePage() {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
-            marginVertical: 20,
+            marginVertical: scale(20),
           }}>
-            {/* Simple Empty Square */}
             <View style={{
-              width: 250,
-              height: 250,
+              width: scale(250),
+              height: scale(250),
               backgroundColor: '#F4F7FA',
-              borderRadius: 16,
+              borderRadius: radii.md,
+              ...cardShadow,
             }} />
           </View>
 
           {/* Text Content */}
           <View style={{
             alignItems: 'center',
-            paddingHorizontal: 24,
-            marginBottom: 20,
+            paddingHorizontal: spacing.lg,
+            marginBottom: spacing.md,
           }}>
             <ThemedText style={{
-              fontSize: 24,
+              fontSize: scale(24),
               fontWeight: 'bold',
               color: AppColors.gray[500],
               textAlign: 'center',
-              marginBottom: 16,
+              marginBottom: spacing.md,
             }}>
               Welcome to UBroke
             </ThemedText>
 
             <ThemedText style={{
-              fontSize: 14,
+              fontSize: scale(14),
               color: AppColors.gray[400],
               textAlign: 'center',
               fontFamily: 'Geist',
               fontStyle: 'normal',
               fontWeight: '400',
-              lineHeight: 21,
+              lineHeight: scale(21),
               letterSpacing: -0.266,
-              paddingHorizontal: 20,
+              paddingHorizontal: spacing.md,
             }}>
               Broke but make it chic! Let's get your money glowing in just a few steps. Ready to slay your finances? 🚀
             </ThemedText>
@@ -106,11 +108,11 @@ export default function WelcomePage() {
           {/* Get Started Button */}
           <TouchableOpacity
             style={{
-              borderRadius: 32,
-              paddingVertical: 16,
-              paddingHorizontal: 48,
-              minWidth: width - 48,
-              minHeight: 56,
+              borderRadius: radii.xl,
+              paddingVertical: scale(16),
+              paddingHorizontal: scale(48),
+              minWidth: width - scale(48),
+              minHeight: scale(56),
               justifyContent: 'center',
               alignItems: 'center',
               backgroundColor: AppColors.primary[300],
@@ -124,7 +126,7 @@ export default function WelcomePage() {
             activeOpacity={0.8}
           >
             <ThemedText style={{
-              fontSize: 18,
+              fontSize: scale(18),
               fontWeight: '600',
               color: AppColors.gray[0],
               textAlign: 'center',
@@ -136,34 +138,34 @@ export default function WelcomePage() {
       {/* Development Navigation */}
       <View style={{
         position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
+        bottom: scale(20),
+        left: scale(20),
+        right: scale(20),
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
-        <View style={{ width: 60 }} />
+        <View style={{ width: scale(60) }} />
         
         <View style={{
           backgroundColor: 'rgba(0,0,0,0.1)',
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-          borderRadius: 12,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: scale(4),
+          borderRadius: radii.md,
         }}>
-          <ThemedText style={{ fontSize: 12, color: '#666' }}>1/5</ThemedText>
+          <ThemedText style={{ fontSize: scale(12), color: '#666' }}>1/5</ThemedText>
         </View>
         
         <TouchableOpacity
           style={{
             backgroundColor: AppColors.primary[300],
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 16,
+            paddingHorizontal: spacing.md,
+            paddingVertical: scale(8),
+            borderRadius: radii.md,
           }}
           onPress={() => router.push('/onboarding/auth')}
         >
-          <ThemedText style={{ color: 'white', fontSize: 12 }}>Next →</ThemedText>
+          <ThemedText style={{ color: 'white', fontSize: scale(12) }}>Next →</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>

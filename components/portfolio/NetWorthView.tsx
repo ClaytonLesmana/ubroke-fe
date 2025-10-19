@@ -1,6 +1,9 @@
 import React from "react";
 import { ScrollView, TouchableOpacity, View, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
+import { scale } from "@/lib/scale";
+import { spacing, radii, colors } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 interface NetWorthData {
   netWorth: number;
@@ -18,25 +21,25 @@ export function NetWorthView({ netWorth }: NetWorthViewProps) {
   return (
     <ScrollView style={{ flex: 1 }}>
       {/* Account sections - hero is now in parent component */}
-      <View style={{ paddingHorizontal: 20 }}>
+      <View style={{ paddingHorizontal: spacing.lg }}>
         {/* Bank section */}
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 20,
+          marginBottom: spacing.lg,
         }}>
           <Text style={{
-            fontSize: 20,
+            fontSize: scale(20),
             fontWeight: 'bold',
-            color: '#000',
+            color: colors.text,
           }}>
             Bank
           </Text>
           <Text style={{
-            fontSize: 18,
+            fontSize: scale(18),
             fontWeight: 'bold',
-            color: '#000',
+            color: colors.text,
           }}>
             $55
           </Text>
@@ -44,65 +47,66 @@ export function NetWorthView({ netWorth }: NetWorthViewProps) {
 
         {/* Outcome transaction */}
         <View style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 8,
+          backgroundColor: colors.surface,
+          borderRadius: radii.lg,
+          padding: spacing.lg,
+          marginBottom: spacing.sm,
           flexDirection: 'row',
           alignItems: 'center',
+          ...cardShadow,
         }}>
           <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: scale(40),
+            height: scale(40),
+            borderRadius: scale(20),
             backgroundColor: '#FFF3CD',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
+            marginRight: spacing.md,
           }}>
-            <Text style={{ fontSize: 20 }}>💎</Text>
+            <Text style={{ fontSize: scale(20) }}>💎</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: '600',
-              color: '#000',
-              marginBottom: 2,
+              color: colors.text,
+              marginBottom: scale(2),
             }}>
               Outcome
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#666',
             }}>
               Syncing....
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#999',
-              marginTop: 2,
+              marginTop: scale(2),
             }}>
               Update 4 minutes ago
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: 'bold',
-              color: '#000',
-              marginBottom: 8,
+              color: colors.text,
+              marginBottom: scale(8),
             }}>
               $15
             </Text>
             <TouchableOpacity style={{
-              backgroundColor: '#8B5CF6',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 16,
+              backgroundColor: colors.primary,
+              paddingHorizontal: spacing.md,
+              paddingVertical: scale(6),
+              borderRadius: radii.md,
             }}>
               <Text style={{
                 color: '#FFFFFF',
-                fontSize: 12,
+                fontSize: scale(12),
                 fontWeight: '600',
               }}>Detail</Text>
             </TouchableOpacity>
@@ -111,65 +115,66 @@ export function NetWorthView({ netWorth }: NetWorthViewProps) {
 
         {/* Income transaction */}
         <View style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 20,
+          backgroundColor: colors.surface,
+          borderRadius: radii.lg,
+          padding: spacing.lg,
+          marginBottom: spacing.lg,
           flexDirection: 'row',
           alignItems: 'center',
+          ...cardShadow,
         }}>
           <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: scale(40),
+            height: scale(40),
+            borderRadius: scale(20),
             backgroundColor: '#FFF3CD',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
+            marginRight: spacing.md,
           }}>
-            <Text style={{ fontSize: 20 }}>💎</Text>
+            <Text style={{ fontSize: scale(20) }}>💎</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: '600',
-              color: '#000',
-              marginBottom: 2,
+              color: colors.text,
+              marginBottom: scale(2),
             }}>
               Income
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#666',
             }}>
               Syncing....
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#999',
-              marginTop: 2,
+              marginTop: scale(2),
             }}>
               Update 4 minutes ago
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: 'bold',
-              color: '#000',
-              marginBottom: 8,
+              color: colors.text,
+              marginBottom: scale(8),
             }}>
               $35
             </Text>
             <TouchableOpacity style={{
-              backgroundColor: '#8B5CF6',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 16,
+              backgroundColor: colors.primary,
+              paddingHorizontal: spacing.md,
+              paddingVertical: scale(6),
+              borderRadius: radii.md,
             }}>
               <Text style={{
                 color: '#FFFFFF',
-                fontSize: 12,
+                fontSize: scale(12),
                 fontWeight: '600',
               }}>Detail</Text>
             </TouchableOpacity>
@@ -181,19 +186,19 @@ export function NetWorthView({ netWorth }: NetWorthViewProps) {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: 20,
+          marginBottom: spacing.lg,
         }}>
           <Text style={{
-            fontSize: 20,
+            fontSize: scale(20),
             fontWeight: 'bold',
-            color: '#000',
+            color: colors.text,
           }}>
             Saving
           </Text>
           <Text style={{
-            fontSize: 18,
+            fontSize: scale(18),
             fontWeight: 'bold',
-            color: '#000',
+            color: colors.text,
           }}>
             $75
           </Text>
@@ -201,65 +206,66 @@ export function NetWorthView({ netWorth }: NetWorthViewProps) {
 
         {/* Saving Income transaction */}
         <View style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: 12,
-          padding: 16,
-          marginBottom: 20,
+          backgroundColor: colors.surface,
+          borderRadius: radii.lg,
+          padding: spacing.lg,
+          marginBottom: spacing.lg,
           flexDirection: 'row',
           alignItems: 'center',
+          ...cardShadow,
         }}>
           <View style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: scale(40),
+            height: scale(40),
+            borderRadius: scale(20),
             backgroundColor: '#FFF3CD',
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: 12,
+            marginRight: spacing.md,
           }}>
-            <Text style={{ fontSize: 20 }}>💎</Text>
+            <Text style={{ fontSize: scale(20) }}>💎</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: '600',
-              color: '#000',
-              marginBottom: 2,
+              color: colors.text,
+              marginBottom: scale(2),
             }}>
               Income
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#666',
             }}>
               Syncing....
             </Text>
             <Text style={{
-              fontSize: 12,
+              fontSize: scale(12),
               color: '#999',
-              marginTop: 2,
+              marginTop: scale(2),
             }}>
               Update 4 minutes ago
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: 'bold',
-              color: '#000',
-              marginBottom: 8,
+              color: colors.text,
+              marginBottom: scale(8),
             }}>
               $35
             </Text>
             <TouchableOpacity style={{
-              backgroundColor: '#8B5CF6',
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 16,
+              backgroundColor: colors.primary,
+              paddingHorizontal: spacing.md,
+              paddingVertical: scale(6),
+              borderRadius: radii.md,
             }}>
               <Text style={{
                 color: '#FFFFFF',
-                fontSize: 12,
+                fontSize: scale(12),
                 fontWeight: '600',
               }}>Detail</Text>
             </TouchableOpacity>

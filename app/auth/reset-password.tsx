@@ -12,6 +12,8 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
+import { scale } from "@/lib/scale";
+import { spacing, radii } from "@/lib/theme";
 
 export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState("");
@@ -23,7 +25,6 @@ export default function ResetPasswordPage() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
-    // Check if we have a valid password reset session
     const checkSession = async () => {
       const {
         data: { session },
@@ -47,23 +48,14 @@ export default function ResetPasswordPage() {
       Alert.alert("Password Required", "Please enter a new password");
       return false;
     }
-
     if (newPassword.length < 6) {
-      Alert.alert(
-        "Password Too Short",
-        "Password must be at least 6 characters long"
-      );
+      Alert.alert("Password Too Short", "Password must be at least 6 characters long");
       return false;
     }
-
     if (newPassword !== confirmPassword) {
-      Alert.alert(
-        "Passwords Don't Match",
-        "Please make sure both passwords match"
-      );
+      Alert.alert("Passwords Don't Match", "Please make sure both passwords match");
       return false;
     }
-
     return true;
   };
 
@@ -91,10 +83,7 @@ export default function ResetPasswordPage() {
         ]
       );
     } catch (error: any) {
-      Alert.alert(
-        "Password Update Error",
-        error.message || "Failed to update password."
-      );
+      Alert.alert("Password Update Error", error.message || "Failed to update password.");
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +93,11 @@ export default function ResetPasswordPage() {
     return (
       <LinearGradient
         colors={["#1a1a2e", "#16213e", "#0f3460"]}
-        style={styles.container}
+        style={[styles.container, { paddingTop: scale(60), paddingHorizontal: spacing.lg }]}
       >
         <View style={styles.content}>
-          <ThemedText style={styles.headerText}>Invalid Reset Link</ThemedText>
-          <ThemedText style={styles.subHeaderText}>
+          <ThemedText style={[styles.headerText, { fontSize: scale(28), marginBottom: spacing.md }]}>Invalid Reset Link</ThemedText>
+          <ThemedText style={[styles.subHeaderText, { fontSize: scale(16) }]}>
             Please check your email for a valid password reset link.
           </ThemedText>
         </View>
@@ -119,24 +108,24 @@ export default function ResetPasswordPage() {
   return (
     <LinearGradient
       colors={["#1a1a2e", "#16213e", "#0f3460"]}
-      style={styles.container}
+      style={[styles.container, { paddingTop: scale(60), paddingHorizontal: spacing.lg }]}
     >
       <View style={styles.content}>
         {/* Header */}
-        <View style={styles.header}>
-          <ThemedText style={styles.headerText}>Set New Password 🔐</ThemedText>
-          <ThemedText style={styles.subHeaderText}>
+        <View style={[styles.header, { marginBottom: scale(40) }]}>
+          <ThemedText style={[styles.headerText, { fontSize: scale(28), marginBottom: spacing.sm }]}>Set New Password 🔐</ThemedText>
+          <ThemedText style={[styles.subHeaderText, { fontSize: scale(16) }]}>
             Choose a strong password to secure your account.
           </ThemedText>
         </View>
 
         {/* Form */}
-        <ThemedView style={styles.formContainer}>
+        <ThemedView style={[styles.formContainer, { borderRadius: radii.lg, padding: spacing.lg }]}>
           {/* New Password Input */}
-          <View style={styles.inputContainer}>
-            <ThemedText style={styles.inputLabel}>New Password</ThemedText>
+          <View style={[styles.inputContainer, { marginBottom: spacing.md }]}>
+            <ThemedText style={[styles.inputLabel, { fontSize: scale(14), marginBottom: scale(8) }]}>New Password</ThemedText>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(14), fontSize: scale(16) }]}
               placeholder="Min 6 characters"
               placeholderTextColor="#666"
               value={newPassword}
@@ -147,10 +136,10 @@ export default function ResetPasswordPage() {
           </View>
 
           {/* Confirm Password Input */}
-          <View style={styles.inputContainer}>
-            <ThemedText style={styles.inputLabel}>Confirm Password</ThemedText>
+          <View style={[styles.inputContainer, { marginBottom: spacing.md }]}>
+            <ThemedText style={[styles.inputLabel, { fontSize: scale(14), marginBottom: scale(8) }]}>Confirm Password</ThemedText>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(14), fontSize: scale(16) }]}
               placeholder="Re-enter your password"
               placeholderTextColor="#666"
               value={confirmPassword}
@@ -162,25 +151,22 @@ export default function ResetPasswordPage() {
 
           {/* Update Password Button */}
           <TouchableOpacity
-            style={[
-              styles.updateButton,
-              isLoading && styles.updateButtonDisabled,
-            ]}
+            style={[styles.updateButton, { borderRadius: radii.md, marginTop: spacing.sm }, isLoading && styles.updateButtonDisabled]}
             onPress={handleUpdatePassword}
             disabled={isLoading}
           >
             <LinearGradient
               colors={["#00FF7F", "#32CD32"]}
-              style={styles.updateButtonGradient}
+              style={[styles.updateButtonGradient, { paddingVertical: scale(16), borderRadius: radii.md }]}
             >
-              <ThemedText style={styles.updateButtonText}>
+              <ThemedText style={[styles.updateButtonText, { fontSize: scale(18) }]}>
                 {isLoading ? "Updating..." : "Update Password"}
               </ThemedText>
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Security Note */}
-          <ThemedText style={styles.securityNote}>
+          <ThemedText style={[styles.securityNote, { fontSize: scale(14), marginTop: spacing.md }]}>
             🔒 Your password is encrypted and secure
           </ThemedText>
         </ThemedView>
@@ -192,8 +178,6 @@ export default function ResetPasswordPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 24,
   },
   content: {
     flex: 1,
@@ -201,49 +185,33 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    marginBottom: 40,
   },
   headerText: {
-    fontSize: 28,
     fontWeight: "bold",
     color: "#FFFFFF",
     textAlign: "center",
-    marginBottom: 12,
   },
   subHeaderText: {
-    fontSize: 16,
     color: "#CCCCCC",
     textAlign: "center",
   },
   formContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    borderRadius: 20,
-    padding: 24,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.2)",
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
+  inputContainer: {},
   inputLabel: {
-    fontSize: 14,
     fontWeight: "600",
     color: "#FFFFFF",
-    marginBottom: 8,
   },
   textInput: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
     color: "#000000",
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
   },
   updateButton: {
-    borderRadius: 16,
-    marginTop: 8,
     shadowColor: "#00FF7F",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -254,20 +222,15 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   updateButtonGradient: {
-    paddingVertical: 16,
-    borderRadius: 16,
     alignItems: "center",
   },
   updateButtonText: {
-    fontSize: 18,
     fontWeight: "bold",
     color: "#000000",
   },
   securityNote: {
-    fontSize: 14,
     color: "#00FF7F",
     textAlign: "center",
-    marginTop: 20,
     fontWeight: "500",
   },
 });

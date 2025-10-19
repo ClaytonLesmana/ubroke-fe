@@ -2,6 +2,9 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
+import { scale } from '@/lib/scale';
+import { spacing, radii, colors } from '@/lib/theme';
+import { cardShadow } from '@/lib/shadow';
 
 interface Bill {
   name: string;
@@ -55,69 +58,65 @@ export function BillsCard({ bills, onAddBills }: BillsCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: AppColors.gray[0],
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    ...cardShadow,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: scale(18),
     fontWeight: '600',
     color: AppColors.gray[500],
   },
   linkText: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: AppColors.primary[300],
     fontWeight: '500',
   },
   billsList: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   billItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: scale(8),
     borderBottomWidth: 1,
     borderBottomColor: AppColors.gray[200],
   },
   billName: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: AppColors.gray[500],
     flex: 1,
   },
   billDate: {
-    fontSize: 12,
+    fontSize: scale(12),
     color: AppColors.gray[400],
-    marginRight: 12,
+    marginRight: scale(12),
   },
   billAmount: {
-    fontSize: 14,
+    fontSize: scale(14),
     fontWeight: '600',
     color: AppColors.gray[500],
   },
   billsTotal: {
     alignItems: 'flex-end',
-    marginBottom: 8,
+    marginBottom: scale(8),
   },
   billsTotalText: {
-    fontSize: 14,
+    fontSize: scale(14),
     fontWeight: '600',
     color: AppColors.gray[500],
   },
   billsMessage: {
-    fontSize: 14,
+    fontSize: scale(14),
     color: AppColors.gray[400],
     textAlign: 'center',
     fontStyle: 'italic',

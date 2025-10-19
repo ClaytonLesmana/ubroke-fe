@@ -12,6 +12,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { useAuth } from "@/hooks/useAuth";
 import { AppColors } from "@/constants/Colors";
+import { scale } from "@/lib/scale";
+import { spacing, radii } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 export default function ProfilePage() {
   const [name, setName] = useState("");
@@ -26,7 +29,6 @@ export default function ProfilePage() {
     useAuth();
 
   useEffect(() => {
-    // Pre-fill with existing data
     if (onboardingData) {
       setName(onboardingData.name || "");
       setAge(onboardingData.age?.toString() || "");
@@ -34,8 +36,6 @@ export default function ProfilePage() {
       setAssets(onboardingData.assets?.toString() || "");
       setLiabilities(onboardingData.liabilities?.toString() || "");
     }
-
-    // Pre-fill with user profile data if available
     if (userProfile) {
       setName(userProfile.first_name && userProfile.last_name ? `${userProfile.first_name} ${userProfile.last_name}` : "");
       setAge(userProfile.age?.toString() || "");
@@ -49,7 +49,6 @@ export default function ProfilePage() {
     setIsLoading(true);
     try {
       const result = await resendEmailVerification();
-
       if (result.error) {
         Alert.alert("Error", result.error.message);
       } else {
@@ -69,12 +68,9 @@ export default function ProfilePage() {
   };
 
   const formatCurrency = (value: string) => {
-    // Remove non-numeric characters except decimal point
     const numericValue = value.replace(/[^0-9.]/g, "");
     const number = parseFloat(numericValue);
-
     if (isNaN(number)) return "";
-
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
@@ -89,19 +85,15 @@ export default function ProfilePage() {
   };
 
   const validateAndContinue = async () => {
-    // Basic validation
     if (!name.trim()) {
       Alert.alert("Name Required", "Please enter your name");
       return;
     }
-
     if (age && (parseInt(age) < 13 || parseInt(age) > 120)) {
       Alert.alert("Invalid Age", "Please enter a valid age");
       return;
     }
-
     setIsLoading(true);
-
     try {
       const profileData = {
         name: name.trim(),
@@ -110,7 +102,6 @@ export default function ProfilePage() {
         assets: parseCurrency(assets),
         liabilities: parseCurrency(liabilities),
       };
-
       await updateOnboardingData(profileData);
       router.push("/onboarding/income");
     } catch (error) {
@@ -125,127 +116,43 @@ export default function ProfilePage() {
   };
 
   return (
-    <View style={{
-      flex: 1,
-      backgroundColor: '#FFFFFF',
-    }}>
-      <SafeAreaView style={{
-        flex: 1,
-      }}>
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <SafeAreaView style={{ flex: 1 }}>
         <ScrollView 
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingHorizontal: 24,
-            paddingTop: 40,
-            paddingBottom: 40,
-          }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: scale(40), paddingBottom: scale(40) }}
           showsVerticalScrollIndicator={false}
         >
           {/* Progress Indicator */}
-          <View style={{
-            width: '100%',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: 20,
-            marginBottom: 40,
-          }}>
-            <ThemedText style={{
-              textAlign: 'center',
-              justifyContent: 'center',
-              color: AppColors.gray[500],
-              fontSize: 12,
-              fontWeight: '600',
-              lineHeight: 18,
-            }}>
+          <View style={{ width: '100%', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', gap: scale(20), marginBottom: scale(40) }}>
+            <ThemedText style={{ textAlign: 'center', justifyContent: 'center', color: AppColors.gray[500], fontSize: scale(12), fontWeight: '600', lineHeight: scale(18) }}>
               Step 1/3 complete
             </ThemedText>
-            <View style={{
-              alignSelf: 'stretch',
-              height: 4,
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              gap: 12,
-              flexDirection: 'row',
-            }}>
-              <View style={{
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                gap: 4,
-                flexDirection: 'row',
-              }}>
-                <View style={{
-                  width: 107,
-                  height: 6,
-                  backgroundColor: AppColors.primary[300],
-                  borderRadius: 55,
-                }} />
-                <View style={{
-                  width: 107,
-                  height: 6,
-                  backgroundColor:  AppColors.gray[100],
-                  borderRadius: 55,
-                }} />
-                <View style={{
-                  width: 107,
-                  height: 6,
-                  backgroundColor: AppColors.gray[100],
-                  borderRadius: 55,
-                }} />
+            <View style={{ alignSelf: 'stretch', height: scale(4), justifyContent: 'flex-start', alignItems: 'center', gap: scale(12), flexDirection: 'row' }}>
+              <View style={{ justifyContent: 'flex-start', alignItems: 'center', gap: scale(4), flexDirection: 'row' }}>
+                <View style={{ width: scale(107), height: scale(6), backgroundColor: AppColors.primary[300], borderRadius: radii.pill }} />
+                <View style={{ width: scale(107), height: scale(6), backgroundColor:  AppColors.gray[100], borderRadius: radii.pill }} />
+                <View style={{ width: scale(107), height: scale(6), backgroundColor: AppColors.gray[100], borderRadius: radii.pill }} />
               </View>
             </View>
           </View>
 
           {/* Header */}
-          <View style={{
-            marginBottom: 40,
-          }}>
-            <ThemedText style={{
-              fontSize: 32,
-              fontWeight: '700',
-              color: '#1B1B1B',
-              lineHeight: 40,
-              marginBottom: 12,
-              textAlign: 'center',
-            }}>
+          <View style={{ marginBottom: scale(40) }}>
+            <ThemedText style={{ fontSize: scale(32), fontWeight: '700', color: '#1B1B1B', lineHeight: scale(40), marginBottom: scale(12), textAlign: 'center' }}>
               Spill Your Money Tea!
             </ThemedText>
-            <ThemedText style={{
-              fontSize: 16,
-              fontWeight: '400',
-              color: '#848484',
-              lineHeight: 24,
-              textAlign: 'center',
-            }}>
+            <ThemedText style={{ fontSize: scale(16), fontWeight: '400', color: '#848484', lineHeight: scale(24), textAlign: 'center' }}>
               Tell us a bit about you to kick things off. Skip if you're feeling shy.
             </ThemedText>
           </View>
-
+          
           {/* Form */}
-          <View style={{
-            flex: 1,
-          }}>
+          <View style={{ flex: 1 }}>
             {/* Name */}
-            <View style={{
-              marginBottom: 20,
-            }}>
-              <ThemedText style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: '#1B1B1B',
-                marginBottom: 8,
-              }}>Name</ThemedText>
+            <View style={{ marginBottom: scale(20) }}>
+              <ThemedText style={{ fontSize: scale(14), fontWeight: '500', color: '#1B1B1B', marginBottom: scale(8) }}>Name</ThemedText>
               <TextInput
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: '#1B1B1B',
-                  borderWidth: 1,
-                  borderColor: '#E8E9EA',
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(16), fontSize: scale(16), color: '#1B1B1B', borderWidth: 1, borderColor: '#E8E9EA' }}
                 placeholder="Alex Andrian"
                 placeholderTextColor="#999"
                 value={name}
@@ -255,26 +162,10 @@ export default function ProfilePage() {
             </View>
 
             {/* Age */}
-            <View style={{
-              marginBottom: 20,
-            }}>
-              <ThemedText style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: '#1B1B1B',
-                marginBottom: 8,
-              }}>Age</ThemedText>
+            <View style={{ marginBottom: scale(20) }}>
+              <ThemedText style={{ fontSize: scale(14), fontWeight: '500', color: '#1B1B1B', marginBottom: scale(8) }}>Age</ThemedText>
               <TextInput
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: '#1B1B1B',
-                  borderWidth: 1,
-                  borderColor: '#E8E9EA',
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(16), fontSize: scale(16), color: '#1B1B1B', borderWidth: 1, borderColor: '#E8E9EA' }}
                 placeholder="18"
                 placeholderTextColor="#999"
                 value={age}
@@ -285,26 +176,10 @@ export default function ProfilePage() {
             </View>
 
             {/* Accounts Total */}
-            <View style={{
-              marginBottom: 20,
-            }}>
-              <ThemedText style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: '#1B1B1B',
-                marginBottom: 8,
-              }}>Accounts total?</ThemedText>
+            <View style={{ marginBottom: scale(20) }}>
+              <ThemedText style={{ fontSize: scale(14), fontWeight: '500', color: '#1B1B1B', marginBottom: scale(8) }}>Accounts total?</ThemedText>
               <TextInput
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: '#1B1B1B',
-                  borderWidth: 1,
-                  borderColor: '#E8E9EA',
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(16), fontSize: scale(16), color: '#1B1B1B', borderWidth: 1, borderColor: '#E8E9EA' }}
                 placeholder="1"
                 placeholderTextColor="#999"
                 value={accountCount}
@@ -315,26 +190,10 @@ export default function ProfilePage() {
             </View>
 
             {/* Assets */}
-            <View style={{
-              marginBottom: 20,
-            }}>
-              <ThemedText style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: '#1B1B1B',
-                marginBottom: 8,
-              }}>Assets</ThemedText>
+            <View style={{ marginBottom: scale(20) }}>
+              <ThemedText style={{ fontSize: scale(14), fontWeight: '500', color: '#1B1B1B', marginBottom: scale(8) }}>Assets</ThemedText>
               <TextInput
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: '#1B1B1B',
-                  borderWidth: 1,
-                  borderColor: '#E8E9EA',
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(16), fontSize: scale(16), color: '#1B1B1B', borderWidth: 1, borderColor: '#E8E9EA' }}
                 placeholder="Enter a number"
                 placeholderTextColor="#999"
                 value={assets ? formatCurrency(assets) : assets}
@@ -344,26 +203,10 @@ export default function ProfilePage() {
             </View>
 
             {/* Liabilities */}
-            <View style={{
-              marginBottom: 40,
-            }}>
-              <ThemedText style={{
-                fontSize: 14,
-                fontWeight: '500',
-                color: '#1B1B1B',
-                marginBottom: 8,
-              }}>Liabilities</ThemedText>
+            <View style={{ marginBottom: scale(40) }}>
+              <ThemedText style={{ fontSize: scale(14), fontWeight: '500', color: '#1B1B1B', marginBottom: scale(8) }}>Liabilities</ThemedText>
               <TextInput
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: '#1B1B1B',
-                  borderWidth: 1,
-                  borderColor: '#E8E9EA',
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: scale(16), fontSize: scale(16), color: '#1B1B1B', borderWidth: 1, borderColor: '#E8E9EA' }}
                 placeholder="Enter a number"
                 placeholderTextColor="#999"
                 value={liabilities ? formatCurrency(liabilities) : liabilities}
@@ -373,65 +216,29 @@ export default function ProfilePage() {
             </View>
 
             {/* Action Buttons */}
-            <View style={{
-              gap: 16,
-              marginBottom: 24,
-            }}>
+            <View style={{ gap: spacing.md, marginBottom: spacing.md }}>
               <TouchableOpacity
-                style={{
-                  backgroundColor: AppColors.primary[300],
-                  borderRadius: 32,
-                  paddingVertical: 16,
-                  alignItems: 'center',
-                  shadowColor: 'rgba(147, 109, 255, 0.3)',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 1,
-                  shadowRadius: 8,
-                  elevation: 4,
-                  opacity: isLoading ? 0.6 : 1,
-                }}
+                style={{ backgroundColor: AppColors.primary[300], borderRadius: radii.xl, paddingVertical: scale(16), alignItems: 'center', shadowColor: 'rgba(147, 109, 255, 0.3)', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 8, elevation: 4, opacity: isLoading ? 0.6 : 1 }}
                 onPress={validateAndContinue}
                 disabled={isLoading}
               >
-                <ThemedText style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: '#FFFFFF',
-                }}>
+                <ThemedText style={{ fontSize: scale(16), fontWeight: '600', color: '#FFFFFF' }}>
                   {isLoading ? "Loading..." : "Next"}
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: 32,
-                  borderWidth: 2,
-                  borderColor: '#936DFF',
-                  paddingVertical: 16,
-                  alignItems: 'center',
-                  opacity: isLoading ? 0.6 : 1,
-                }}
+                style={{ backgroundColor: '#FFFFFF', borderRadius: radii.xl, borderWidth: 2, borderColor: '#936DFF', paddingVertical: scale(16), alignItems: 'center', opacity: isLoading ? 0.6 : 1 }}
                 onPress={handleSkip}
                 disabled={isLoading}
               >
-                <ThemedText style={{
-                  fontSize: 16,
-                  fontWeight: '600',
-                  color: '#936DFF',
-                }}>
+                <ThemedText style={{ fontSize: scale(16), fontWeight: '600', color: '#936DFF' }}>
                   Skip
                 </ThemedText>
               </TouchableOpacity>
             </View>
 
-            {/* Footer Text */}
-            <ThemedText style={{
-              fontSize: 14,
-              color: '#848484',
-              textAlign: 'center',
-              fontStyle: 'italic',
-            }}>
+            <ThemedText style={{ fontSize: scale(14), color: '#848484', textAlign: 'center', fontStyle: 'italic' }}>
               No pressure, you can add more later!
             </ThemedText>
           </View>
@@ -439,46 +246,17 @@ export default function ProfilePage() {
       </SafeAreaView>
 
       {/* Development Navigation */}
-      <View style={{
-        position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#f0f0f0',
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 16,
-          }}
-          onPress={() => router.back()}
-        >
-          <ThemedText style={{ color: '#666', fontSize: 12 }}>← Back</ThemedText>
+      <View style={{ position: 'absolute', bottom: scale(20), left: scale(20), right: scale(20), flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TouchableOpacity style={{ backgroundColor: '#f0f0f0', paddingHorizontal: spacing.md, paddingVertical: scale(8), borderRadius: radii.md }} onPress={() => router.back()}>
+          <ThemedText style={{ color: '#666', fontSize: scale(12) }}>← Back</ThemedText>
         </TouchableOpacity>
         
-        <View style={{
-          backgroundColor: 'rgba(0,0,0,0.1)',
-          paddingHorizontal: 8,
-          paddingVertical: 4,
-          borderRadius: 12,
-        }}>
-          <ThemedText style={{ fontSize: 12, color: '#666' }}>3/5</ThemedText>
+        <View style={{ backgroundColor: 'rgba(0,0,0,0.1)', paddingHorizontal: spacing.sm, paddingVertical: scale(4), borderRadius: radii.md }}>
+          <ThemedText style={{ fontSize: scale(12), color: '#666' }}>3/5</ThemedText>
         </View>
         
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#936DFF',
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 16,
-          }}
-          onPress={() => router.push('/onboarding/income')}
-        >
-          <ThemedText style={{ color: 'white', fontSize: 12 }}>Next →</ThemedText>
+        <TouchableOpacity style={{ backgroundColor: '#936DFF', paddingHorizontal: spacing.md, paddingVertical: scale(8), borderRadius: radii.md }} onPress={() => router.push('/onboarding/income')}>
+          <ThemedText style={{ color: 'white', fontSize: scale(12) }}>Next →</ThemedText>
         </TouchableOpacity>
       </View>
     </View>

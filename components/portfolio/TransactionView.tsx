@@ -4,6 +4,9 @@ import { ThemedText } from "@/components/ThemedText";
 import { Icon } from "@/components/Icon";
 import { CategoryIcon, CategoryType, getCategoryFromTransaction } from "@/components/CategoryIcon";
 import { useRouter } from 'expo-router';
+import { scale } from "@/lib/scale";
+import { spacing, radii, colors } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 interface Transaction {
   id: string;
@@ -28,10 +31,6 @@ const VALID_CATEGORIES: readonly CategoryType[] = [
 function isValidCategory(value: unknown): value is CategoryType {
   if (typeof value !== 'string') return false;
   const normalized = value.toLowerCase() as string;
-  // Map possible titlecase inputs to lowercase for comparison, then check exact match in VALID_CATEGORIES (which include lowercase keys except camelCase ones)
-  // Normalize known camelCase by rebuilding from lowercase tokens where applicable
-  const candidates: string[] = [normalized];
-  // Allow common aliases
   const aliasMap: Record<string, CategoryType> = {
     uber: 'taxi',
     transit: 'publicTransport',
@@ -96,91 +95,56 @@ export function TransactionView({ transactions, addTransaction }: TransactionVie
     return sortedDates.map(dateKey => ({ title: formatDateHeader(dateKey), data: map[dateKey] }));
   };
 
-  // Calculate summary data
-  const getSummaryData = () => {
-    const currentMonthTransactions = sourceTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      const currentDate = new Date();
-      return transactionDate.getMonth() === currentDate.getMonth() && 
-             transactionDate.getFullYear() === currentDate.getFullYear();
-    });
-    
-    const expenses = currentMonthTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const income = 1000; // This should come from income data
-    const balance = income - expenses;
-    
-    return { income, expenses, balance };
-  };
-
-  const summaryData = getSummaryData();
   const groupedTransactions = groupTransactionsByDate();
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 140 }}>
-      {/* Grouped Transactions - hero section now in parent */}
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: scale(140) }}>
       {groupedTransactions.map((group) => (
         <View key={group.title} style={{
-          paddingHorizontal: 20,
-          marginBottom: 20,
+          paddingHorizontal: spacing.lg,
+          marginBottom: spacing.lg,
         }}>
           <ThemedText style={{
-            fontSize: 18,
+            fontSize: scale(18),
             fontWeight: 'bold',
-            marginBottom: 12,
+            marginBottom: spacing.md,
           }}>{group.title}</ThemedText>
           {group.data.map((transaction) => (
             <TouchableOpacity key={transaction.id} activeOpacity={0.8} onPress={() => router.push({ pathname: '/transactions/[id]', params: { id: transaction.id } })}>
               <View style={{
-                backgroundColor: '#FFF',
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 8,
+                backgroundColor: colors.surface,
+                borderRadius: radii.lg,
+                padding: spacing.lg,
+                marginBottom: spacing.sm,
                 flexDirection: 'row',
                 alignItems: 'center',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2,
+                ...cardShadow,
               }}>
                 <View style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
+                  width: scale(40),
+                  height: scale(40),
+                  borderRadius: scale(20),
                   backgroundColor: '#F5F5F5',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: 12,
+                  marginRight: spacing.md,
                 }}>
-                  <CategoryIcon category={transaction.category as CategoryType} size={22} color="#936DFF" />
+                  <CategoryIcon category={transaction.category as CategoryType} size={scale(22)} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <ThemedText style={{
-                    fontSize: 16,
+                    fontSize: scale(16),
                     fontWeight: '600',
-                    marginBottom: 2,
+                    marginBottom: scale(2),
                   }}>
                     {transaction.merchant}
                   </ThemedText>
-                  {/* <ThemedText style={{
-                    fontSize: 12,
-                    opacity: 0.6,
-                  }}>
-                    Syncing....
-                  </ThemedText>
-                  <ThemedText style={{
-                    fontSize: 12,
-                    color: '#999',
-                    marginTop: 2,
-                  }}>
-                    Update 4 minutes ago
-                  </ThemedText> */}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <ThemedText style={{
-                    fontSize: 16,
+                    fontSize: scale(16),
                     fontWeight: 'bold',
-                    marginBottom: 8,
+                    marginBottom: scale(8),
                   }}>
                     ${transaction.amount}
                   </ThemedText>

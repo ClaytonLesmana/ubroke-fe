@@ -3,6 +3,9 @@ import { View, TouchableOpacity, Animated, Easing } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { AppColors } from '@/constants/Colors';
 import { Icon } from '@/components/Icon';
+import { scale } from '@/lib/scale';
+import { spacing, radii } from '@/lib/theme';
+import { cardShadow } from '@/lib/shadow';
 
 interface MonthSliderProps {
   selectedMonth?: string;
@@ -85,18 +88,14 @@ export function MonthSlider({
   return (
     <View style={{
       backgroundColor: AppColors.primary[300],
-      borderRadius: 35,
+      borderRadius: radii.xl,
       width: '100%',
-      height: 60,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
+      height: scale(60),
+      paddingVertical: scale(12),
+      paddingHorizontal: spacing.md,
       marginHorizontal: 0,
-      marginBottom: 12,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 6,
+      marginBottom: spacing.md,
+      ...cardShadow,
     }}>
       <View style={{
         flexDirection: 'row',
@@ -107,25 +106,25 @@ export function MonthSlider({
         <TouchableOpacity
           onPress={handlePreviousMonth}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: scale(40),
+            height: scale(40),
+            borderRadius: scale(20),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <Icon 
             name="leftArrow"
-            size={13}
+            size={scale(13)}
             color={AppColors.gray[0]}
           />
         </TouchableOpacity>
 
         {/* Center Content (animated) */}
-        <View style={{ flex: 1, alignItems: 'center', marginHorizontal: 16, overflow: 'hidden' }}>
+        <View style={{ flex: 1, alignItems: 'center', marginHorizontal: spacing.md, overflow: 'hidden' }}>
           <Animated.View style={{ transform: [{ translateX }], opacity }}>
             <ThemedText style={{
-              fontSize: 18,
+              fontSize: scale(18),
               fontWeight: '600',
               color: AppColors.gray[0],
             }}>
@@ -138,16 +137,16 @@ export function MonthSlider({
         <TouchableOpacity
           onPress={handleNextMonth}
           style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
+            width: scale(40),
+            height: scale(40),
+            borderRadius: scale(20),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
           <Icon 
             name="rightArrow"
-            size={13}
+            size={scale(13)}
             color={AppColors.gray[0]}
           />
         </TouchableOpacity>

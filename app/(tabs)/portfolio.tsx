@@ -13,6 +13,9 @@ import { TransactionView } from "@/components/portfolio/TransactionView";
 import { NetWorthView } from "@/components/portfolio/NetWorthView";
 import { Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
+import { scale } from "@/lib/scale";
+import { spacing, radii, colors, typography } from "@/lib/theme";
+import { cardShadow } from "@/lib/shadow";
 
 
 type TransactionViewType = 'transaction' | 'networth';
@@ -100,12 +103,11 @@ export default function PortfolioScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
         style={{
-          paddingTop: 80,
-          // paddingBottom: 40,
-          borderBottomLeftRadius: 44,
-          borderBottomRightRadius: 44,
-          marginBottom: 20,
-          minHeight: 380, // Fixed height to ensure consistency
+          paddingTop: scale(80),
+          borderBottomLeftRadius: radii.xl,
+          borderBottomRightRadius: radii.xl,
+          marginBottom: spacing.lg,
+          minHeight: scale(380),
         }}
       >
         {/* Transaction/Net Worth Toggle */}
@@ -113,26 +115,22 @@ export default function PortfolioScreen() {
           flexDirection: 'row',
           alignSelf: 'center',
           backgroundColor: '#F8F9FA',
-          borderRadius: 55,
-          padding: 4,
+          borderRadius: radii.pill,
+          padding: scale(4),
           width: '90%',
           maxWidth: 400,
-          marginBottom: 20,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.1,
-          shadowRadius: 2,
-          elevation: 2,
+          marginBottom: spacing.lg,
+          ...cardShadow,
         }}>
           <TouchableOpacity
             style={{
               flex: 1,
-              paddingVertical: 12,
-              paddingHorizontal: 20,
+              paddingVertical: scale(12),
+              paddingHorizontal: spacing.lg,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 55,
-              marginRight: 2,
+              borderRadius: radii.pill,
+              marginRight: scale(2),
               backgroundColor: transactionView === 'transaction' ? AppColors.primary[300] : 'transparent',
               shadowColor: transactionView === 'transaction' ? '#936DFF' : 'transparent',
               shadowOffset: { width: 0, height: 2 },
@@ -144,7 +142,7 @@ export default function PortfolioScreen() {
             activeOpacity={0.8}
           >
             <ThemedText style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: '600',
               color: transactionView === 'transaction' ? '#FFFFFF' : '#848484',
             }}>
@@ -155,12 +153,12 @@ export default function PortfolioScreen() {
           <TouchableOpacity
             style={{
               flex: 1,
-              paddingVertical: 12,
-              paddingHorizontal: 20,
+              paddingVertical: scale(12),
+              paddingHorizontal: spacing.lg,
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 55,
-              marginLeft: 2,
+              borderRadius: radii.pill,
+              marginLeft: scale(2),
               backgroundColor: transactionView === 'networth' ? AppColors.primary[300] : 'transparent',
               shadowColor: transactionView === 'networth' ? '#936DFF' : 'transparent',
               shadowOffset: { width: 0, height: 2 },
@@ -172,7 +170,7 @@ export default function PortfolioScreen() {
             activeOpacity={0.8}
           >
             <ThemedText style={{
-              fontSize: 16,
+              fontSize: scale(16),
               fontWeight: '600',
               color: transactionView === 'networth' ? '#FFFFFF' : '#848484',
             }}>
@@ -188,34 +186,34 @@ export default function PortfolioScreen() {
         }}>
           {transactionView === 'networth' && (
             <View style={{
-              padding: 40,
+              padding: spacing.xl,
               top: 0,
               alignItems: 'center',
             }}>
               {/* Money bag icon */}
               <View style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
+                width: scale(80),
+                height: scale(80),
+                borderRadius: scale(40),
                 backgroundColor: '#ffffff',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: 10,
+                marginBottom: scale(10),
+                ...cardShadow,
               }}>
-                <Icon name="moneyBagIcon" size={40} />
+                <Icon name="moneyBagIcon" size={scale(40)} />
               </View>
               
               <ThemedText style={{
-                fontSize: 18,
+                fontSize: scale(18),
                 color: 'rgba(255, 255, 255, 0.8)',
-                // marginBottom: 8,
               }}>
                 Your Net Worth
               </ThemedText>
               
               <ThemedText style={{
-                fontSize: 48,
-                paddingTop: 40,
+                fontSize: scale(48),
+                paddingTop: scale(40),
                 fontWeight: 'bold',
                 color: '#FFFFFF',
               }}>
@@ -227,54 +225,55 @@ export default function PortfolioScreen() {
           {transactionView === 'transaction' && (
             <View style={{
               flex: 1,
-              paddingHorizontal: 20,
+              paddingHorizontal: spacing.lg,
             }}>
               {/* White container with summary cards */}
               <View style={{
                 backgroundColor: '#FFFFFF',
-                borderRadius: 34,
-                
-                marginTop: 60,
-                top: -50,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
+                borderRadius: radii.xl,
+                marginTop: scale(60),
+                top: -scale(50),
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.md,
                 flex: 1,
                 justifyContent: 'center',
+                ...cardShadow,
               }}>
                 {/* Account Dropdown - positioned above white container */}
                 <View style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  marginBottom: 12,
+                  marginBottom: spacing.md,
                 }}>
                   <View style={{ position: 'relative' }}>
                     <TouchableOpacity style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingVertical: 8,
-                      paddingHorizontal: 12,
+                      paddingVertical: scale(8),
+                      paddingHorizontal: spacing.md,
                       backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: 10,
-                      minWidth: 120,
+                      borderRadius: radii.md,
+                      minWidth: scale(120),
+                      ...cardShadow,
                     }} onPress={() => setShowAccountDropdown(v => !v)}>
                       <ThemedText style={{
-                        fontSize: 15,
+                        fontSize: scale(15),
                         fontWeight: '500',
-                        marginRight: 6,
+                        marginRight: scale(6),
                       }}>{selectedAccount.name}</ThemedText>
-                      <Icon name="downIcon" size={14} color="#666" />
+                      <Icon name="downIcon" size={scale(14)} color="#666" />
                     </TouchableOpacity>
 
                     {showAccountDropdown && (
                       <View style={{
                         position: 'absolute',
-                        top: 44,
+                        top: scale(44),
                         left: 0,
                         right: 0,
                         backgroundColor: '#FFFFFF',
-                        borderRadius: 10,
-                        paddingVertical: 6,
+                        borderRadius: radii.md,
+                        paddingVertical: scale(6),
                         shadowColor: '#000',
                         shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.15,
@@ -284,8 +283,8 @@ export default function PortfolioScreen() {
                       }}>
                         {dummyAccounts.map(acc => (
                           <TouchableOpacity key={acc.id} onPress={() => { setSelectedAccount(acc); setShowAccountDropdown(false); }}
-                            style={{ paddingVertical: 10, paddingHorizontal: 12 }}>
-                            <ThemedText style={{ fontSize: 15, color: '#111' }}>{acc.name}</ThemedText>
+                            style={{ paddingVertical: scale(10), paddingHorizontal: spacing.md }}>
+                            <ThemedText style={{ fontSize: scale(12), color: '#111' }}>{acc.name}</ThemedText>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -297,24 +296,26 @@ export default function PortfolioScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: 10,
-                    paddingHorizontal: 12,
-                    paddingVertical: 4,
+                    borderRadius: radii.md,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: scale(8),
+                    minWidth: scale(160),
+                    ...cardShadow,
                   }}>
-                    <TouchableOpacity style={{ padding: 2 }} onPress={handlePrev}>
-                      <Icon name="leftArrow" size={8} color="#666" />
+                    <TouchableOpacity style={{ padding: scale(2) }} onPress={handlePrev}>
+                      <Icon name="leftArrow" size={scale(8)} color="#666" />
                     </TouchableOpacity>
-                    <View style={{ marginHorizontal: 10, overflow: 'hidden', minWidth: 110, alignItems: 'center' }}>
+                    <View style={{ marginHorizontal: scale(4), overflow: 'hidden', flex: 1, alignItems: 'center' }}>
                       <Animated.View style={{ transform: [{ translateX }], opacity }}>
                         <ThemedText style={{
-                          fontSize: 15,
+                          fontSize: scale(12),
                           fontWeight: '600',
                           color: '#000',
                         }}>{months[currentMonthIndex]} {currentYear}</ThemedText>
                       </Animated.View>
                     </View>
-                    <TouchableOpacity style={{ padding: 2 }} onPress={handleNext}>
-                      <Icon name="rightArrow" size={8} color="#666" />
+                    <TouchableOpacity style={{ padding: scale(2) }} onPress={handleNext}>
+                      <Icon name="rightArrow" size={scale(8)} color="#666" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -324,20 +325,20 @@ export default function PortfolioScreen() {
                   flexDirection: 'row',
                   justifyContent: 'space-around',
                   alignItems: 'center',
-                  paddingVertical: 8,
+                  paddingVertical: spacing.sm,
                 }}>
                   <View style={{
                     alignItems: 'center',
                     flex: 1,
                   }}>
                     <ThemedText style={{
-                      fontSize: 24,
+                      fontSize: scale(24),
                       fontWeight: 'bold',
-                      marginBottom: 2,
+                      marginBottom: scale(2),
                       color: '#000',
                     }}>$10000</ThemedText>
                     <ThemedText style={{
-                      fontSize: 14,
+                      fontSize: scale(14),
                       color: '#666',
                     }}>Income</ThemedText>
                   </View>
@@ -346,13 +347,13 @@ export default function PortfolioScreen() {
                     flex: 1,
                   }}>
                     <ThemedText style={{
-                      fontSize: 24,
+                      fontSize: scale(24),
                       fontWeight: 'bold',
-                      marginBottom: 2,
+                      marginBottom: scale(2),
                       color: '#000',
                     }}>$200</ThemedText>
                     <ThemedText style={{
-                      fontSize: 14,
+                      fontSize: scale(14),
                       color: '#666',
                     }}>Expenses</ThemedText>
                   </View>
@@ -361,13 +362,13 @@ export default function PortfolioScreen() {
                     flex: 1,
                   }}>
                     <ThemedText style={{
-                      fontSize: 24,
+                      fontSize: scale(24),
                       fontWeight: 'bold',
-                      marginBottom: 2,
+                      marginBottom: scale(2),
                       color: '#000',
                     }}>$800</ThemedText>
                     <ThemedText style={{
-                      fontSize: 14,
+                      fontSize: scale(14),
                       color: '#666',
                     }}>Balance</ThemedText>
                   </View>
@@ -391,11 +392,11 @@ export default function PortfolioScreen() {
             activeOpacity={0.9}
             style={{
               position: 'absolute',
-              right: 20,
-              bottom: 90,
-              width: 56,
-              height: 56,
-              borderRadius: 28,
+              right: spacing.lg,
+              bottom: scale(90),
+              width: scale(56),
+              height: scale(56),
+              borderRadius: scale(28),
               backgroundColor: AppColors.primary[300],
               alignItems: 'center',
               justifyContent: 'center',
@@ -406,7 +407,7 @@ export default function PortfolioScreen() {
               elevation: 6,
             }}
           >
-            <Icon name="addIcon" size={22} color="#fff" />
+            <Icon name="addIcon" size={scale(22)} color="#fff" />
           </TouchableOpacity>
         </>
       )}

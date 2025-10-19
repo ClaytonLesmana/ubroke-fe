@@ -8,6 +8,9 @@ import { CashflowCard } from './CashflowCard';
 import { MonthSlider } from './MonthSlider';
 import { useRouter } from 'expo-router';
 import Svg, { Rect, Line } from 'react-native-svg';
+import { scale } from '@/lib/scale';
+import { spacing, radii, colors } from '@/lib/theme';
+import { cardShadow } from '@/lib/shadow';
 
 interface SpendingCategory {
   name: string;
@@ -52,15 +55,11 @@ export function CombinedCard({
   return (
     <View style={{
       backgroundColor: AppColors.gray[0],
-      borderRadius: 24,
-      padding: 20,
-      marginHorizontal: 16,
-      marginBottom: 16,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.04,
-      shadowRadius: 6,
-      elevation: 3,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      marginHorizontal: spacing.md,
+      marginBottom: spacing.md,
+      ...cardShadow,
     }}>
       {/* Month Slider */}
       <MonthSlider 
@@ -76,8 +75,8 @@ export function CombinedCard({
           onPress={() => setIsDropdownOpen(!isDropdownOpen)}
           style={{
             position: 'absolute',
-            top: 10,
-            left: 4,
+            top: scale(10),
+            left: scale(4),
             zIndex: 10,
             flexDirection: 'row',
             alignItems: 'center',
@@ -85,32 +84,33 @@ export function CombinedCard({
             backgroundColor: AppColors.gray[0],
             borderWidth: 1,
             borderColor: AppColors.gray[200],
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            borderRadius: 8,
-            minWidth: 140
+            paddingHorizontal: spacing.md,
+            paddingVertical: scale(8),
+            borderRadius: radii.md,
+            minWidth: scale(140),
+            ...cardShadow,
           }}
         >
           <ThemedText style={{
-            fontSize: 14,
+            fontSize: scale(14),
             color: AppColors.gray[500]
           }}>
             {viewMode === 'spending' ? 'Expenses' : viewMode === 'cashflow' ? 'Cashflow' : 'Net'}
           </ThemedText>
-          <Icon name={isDropdownOpen ? "upIcon" : "downIcon"} size={15} color={AppColors.gray[400]} />
+          <Icon name={isDropdownOpen ? "upIcon" : "downIcon"} size={scale(15)} color={AppColors.gray[400]} />
         </TouchableOpacity>
 
         {/* Dropdown menu */}
         {isDropdownOpen && (
           <View style={{
             position: 'absolute',
-            top: 52,
-            left: 4,
+            top: scale(52),
+            left: scale(4),
             right: 0,
-            width: 138,
+            width: scale(138),
             backgroundColor: AppColors.gray[0],
-            borderRadius: 8,
-            marginTop: 4,
+            borderRadius: radii.md,
+            marginTop: scale(4),
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
@@ -121,14 +121,14 @@ export function CombinedCard({
             <TouchableOpacity
               onPress={() => { setViewMode('spending'); setIsDropdownOpen(false); }}
               style={{ 
-                paddingHorizontal: 12, 
-                paddingVertical: 10, 
+                paddingHorizontal: spacing.md, 
+                paddingVertical: scale(10), 
                 borderBottomWidth: 1,
                 borderBottomColor: AppColors.gray[100]
               }}
             >
               <ThemedText style={{ 
-                fontSize: 14, 
+                fontSize: scale(14), 
                 color: viewMode === 'spending' ? AppColors.primary[300] : AppColors.gray[500], 
                 fontWeight: viewMode === 'spending' ? '600' : '400' 
               }}>
@@ -138,14 +138,14 @@ export function CombinedCard({
             <TouchableOpacity
               onPress={() => { setViewMode('cashflow'); setIsDropdownOpen(false); }}
               style={{ 
-                paddingHorizontal: 12, 
-                paddingVertical: 10,
+                paddingHorizontal: spacing.md, 
+                paddingVertical: scale(10),
                 borderBottomWidth: 1,
                 borderBottomColor: AppColors.gray[100]
               }}
             >
               <ThemedText style={{ 
-                fontSize: 14, 
+                fontSize: scale(14), 
                 color: viewMode === 'cashflow' ? AppColors.primary[300] : AppColors.gray[500], 
                 fontWeight: viewMode === 'cashflow' ? '600' : '400' 
               }}>
